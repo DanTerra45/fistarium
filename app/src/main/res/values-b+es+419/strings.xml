@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Fistarium</string>
+    <string name="welcome_title">Bienvenido a Fistarium</string>
+    <string name="welcome_subtitle">Descubre el mundo de los personajes de Tekken</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="register">Registrarse</string>
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="register_button">Registrarse</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="home_title">Personajes</string>
+    <string name="detail_title">Detalles del personaje</string>
+    <string name="loading">Cargando…</string>
+    <string name="error">Error</string>
+    <string name="retry">Reintentar</string>
+    <string name="no_characters">No se encontraron personajes</string>
+    <string name="sync_success">Sincronización exitosa</string>
+    <string name="sync_failed">Sincronización fallida</string>
+    <string name="no_account_register">¿No tienes una cuenta? Regístrate</string>
+    <string name="have_account_login">¿Ya tienes una cuenta? Inicia sesión</string>
+    <string name="back">Atrás</string>
+    <string name="stats">Estadísticas</string>
+</resources>

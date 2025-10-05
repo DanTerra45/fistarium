@@ -16,16 +16,32 @@ android {
         minSdk = 28
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: error("KEYSTORE_PATH environment variable not set"))
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: error("KEYSTORE_PASSWORD environment variable not set")
+            keyAlias = System.getenv("KEYSTORE_KEY_ALIAS") ?: error("KEYSTORE_KEY_ALIAS environment variable not set")
+            keyPassword = System.getenv("KEYSTORE_KEY_PASSWORD") ?: error("KEYSTORE_KEY_PASSWORD environment variable not set")
+            storeType = "PKCS12"
+        }
+    }
     buildTypes {
+        debug {
+            isDebuggable = true
+            isJniDebuggable = true
+        }
         release {
             isMinifyEnabled = false
+            isDebuggable = false
+            isJniDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -39,6 +55,14 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = true
+        }
     }
 }
 

@@ -9,9 +9,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.androidx.compose.koinViewModel
-import wiki.tk.fistarium.presentation.ui.screens.*
-import wiki.tk.fistarium.presentation.viewmodel.AuthViewModel
-import wiki.tk.fistarium.presentation.viewmodel.CharacterViewModel
+import wiki.tk.fistarium.presentation.ui.screens.WelcomeScreen
+import wiki.tk.fistarium.features.auth.presentation.LoginScreen
+import wiki.tk.fistarium.features.auth.presentation.RegisterScreen
+import wiki.tk.fistarium.features.characters.presentation.HomeScreen
+import wiki.tk.fistarium.features.characters.presentation.DetailScreen
+import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
+import wiki.tk.fistarium.features.characters.presentation.CharacterViewModel
 import wiki.tk.fistarium.ui.theme.FistariumTheme
 
 class MainActivity : ComponentActivity() {

@@ -25,17 +25,29 @@ fun WelcomeScreen(
             text = stringResource(R.string.welcome_title),
             style = MaterialTheme.typography.headlineMedium
         )
+        
         Spacer(modifier = Modifier.height(8.dp))
+        
         Text(
             text = stringResource(R.string.welcome_subtitle),
             style = MaterialTheme.typography.bodyMedium
         )
+        
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onLoginClick) {
+        
+        Button(
+            onClick = onLoginClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(stringResource(R.string.login))
         }
+        
         Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(onClick = onRegisterClick) {
+        
+        OutlinedButton(
+            onClick = onRegisterClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(stringResource(R.string.register))
         }
     }
