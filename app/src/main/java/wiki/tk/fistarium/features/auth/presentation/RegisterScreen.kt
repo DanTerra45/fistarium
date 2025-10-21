@@ -20,56 +20,62 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Text(
-            text = stringResource(R.string.register),
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(stringResource(R.string.email)) },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(R.string.password)) },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (errorMessage != null) {
-            Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        Button(
-            onClick = { onRegister(email, password) },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp))
-            } else {
-                Text(stringResource(R.string.register_button))
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.register),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(32.dp))
 
-        TextButton(onClick = onGoToLogin) {
-            Text(stringResource(R.string.have_account_login))
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(stringResource(R.string.email)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text(stringResource(R.string.password)) },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (errorMessage != null) {
+                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Button(
+                onClick = { onRegister(email, password) },
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
+                    Text(stringResource(R.string.register_button))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = onGoToLogin) {
+                Text(stringResource(R.string.have_account_login))
+            }
         }
     }
 }

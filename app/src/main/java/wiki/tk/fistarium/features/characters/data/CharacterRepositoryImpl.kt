@@ -19,10 +19,67 @@ class CharacterRepositoryImpl(
         return localDataSource.getCharacterById(id)
     }
 
+    override fun getFavoriteCharacters(): Flow<List<Character>> {
+        return localDataSource.getFavoriteCharacters()
+    }
+
+    override suspend fun searchCharacters(query: String): List<Character> {
+        return localDataSource.searchCharacters(query)
+    }
+
     override suspend fun syncCharactersFromRemote(): Result<Unit> {
         return try {
             val remoteCharacters = remoteDataSource.fetchCharacters().getOrThrow()
             localDataSource.saveCharacters(remoteCharacters)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createCharacter(character: Character): Result<String> {
+        return try {
+            // Save to remote first
+            remoteDataSource.saveCharacter(character).getOrThrow()
+            // Then save to local
+            localDataSource.saveCharacter(character)
+            Result.success(character.id)
+        } catch (e: Exception) {
+            // If remote fails, still save locally
+            localDataSource.saveCharacter(character)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateCharacter(character: Character): Result<Unit> {
+        return try {
+            // Update remote first
+            remoteDataSource.updateCharacter(character).getOrThrow()
+            // Then update local
+            localDataSource.saveCharacter(character)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            // If remote fails, still update locally
+            localDataSource.saveCharacter(character)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteCharacter(characterId: String): Result<Unit> {
+        return try {
+            // Delete from remote first
+            remoteDataSource.deleteCharacter(characterId).getOrThrow()
+            // Then delete from local
+            localDataSource.deleteCharacter(characterId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun toggleFavorite(characterId: String, isFavorite: Boolean): Result<Unit> {
+        return try {
+            localDataSource.updateFavoriteStatus(characterId, isFavorite)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -8,18 +8,45 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = FistRed80,
+    onPrimary = FistBlack,
+    primaryContainer = FistRed40,
+    onPrimaryContainer = FistWhite,
+    secondary = FistGold80,
+    onSecondary = FistBlack,
+    secondaryContainer = FistGold40,
+    onSecondaryContainer = FistWhite,
+    tertiary = FistGrey80,
+    onTertiary = FistBlack,
+    background = FistBlack,
+    onBackground = FistWhite,
+    surface = Color(0xFF1E1E1E),
+    onSurface = FistWhite,
+    surfaceVariant = Color(0xFF2A2A2A),
+    onSurfaceVariant = FistGrey80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = FistRed40,
+    onPrimary = FistWhite,
+    primaryContainer = FistRed80,
+    onPrimaryContainer = FistBlack,
+    secondary = FistGold40,
+    onSecondary = FistBlack,
+    secondaryContainer = FistGold80,
+    onSecondaryContainer = FistBlack,
+    tertiary = FistGrey40,
+    onTertiary = FistWhite,
+    background = FistWhite,
+    onBackground = FistBlack,
+    surface = Color(0xFFFAFAFA),
+    onSurface = FistBlack,
+    surfaceVariant = Color(0xFFF5F5F5),
+    onSurfaceVariant = FistGrey40
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

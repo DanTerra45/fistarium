@@ -45,6 +45,10 @@ class AuthViewModel(private val authUseCase: AuthUseCase) : ViewModel() {
         }
     }
 
+    fun getCurrentUserId(): String? {
+        return authUseCase.getCurrentUserId()
+    }
+
     sealed class AuthState {
         object Idle : AuthState()
         object Loading : AuthState()

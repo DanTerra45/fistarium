@@ -98,9 +98,10 @@ dependencies {
     // Image Loading
     implementation(libs.glide)
     implementation(libs.coil.compose)
-    // Networking
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson.converter)
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
+    // JSON
+    implementation(libs.gson)
     // Dependency Injection
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
@@ -114,6 +115,10 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.appcheck.debug)
     // Google Play Services
     implementation(libs.play.services.base)
     // Additional Testing

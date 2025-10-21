@@ -17,8 +17,11 @@ espressoCore = "3.7.0"
 # Navigation
 navVersion = "2.9.5"
 
-# Networking
-retrofit = "3.0.0"
+# DataStore
+datastorePreferences = "1.1.1"
+
+# JSON
+gson = "2.11.0"
 
 # Image Loading
 glide = "5.0.5"
@@ -72,9 +75,11 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
 
-# Networking
-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-gson-converter = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+# DataStore
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+
+# JSON
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
@@ -97,6 +102,10 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+firebase-config = { group = "com.google.firebase", name = "firebase-config" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
 
 # Google Play Services
 play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
@@ -116,4 +125,4 @@ google-gms-google-services = { id = "com.google.gms.google-services", version.re
 
 [bundles]
 # Local bundles
-local = ["room-runtime", "room-ktx", "room-rxjava2", "room-rxjava3", "room-guava", "room-paging" ]
+local = ["room-runtime", "room-ktx", "room-paging" ]

@@ -9,7 +9,7 @@
 # KEYSTORE_KEY_PASSWORD=[your_keystore_password]
 # -----------------
 # Launch this with: 
-# powershell -ExecutionPolicy Bypass -File ".\powershell_keystore_defs.ps1"
+# powershell -ExecutionPolicy Bypass -File ".\powershell_keystore_definitions.ps1"
 
 param(
     [switch]$NoLaunch,

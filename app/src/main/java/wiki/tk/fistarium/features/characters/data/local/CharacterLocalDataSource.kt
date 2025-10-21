@@ -1,7 +1,5 @@
 package wiki.tk.fistarium.features.characters.data.local
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import wiki.tk.fistarium.features.characters.data.local.dao.CharacterDao
 import wiki.tk.fistarium.features.characters.data.local.entity.CharacterEntity
 import wiki.tk.fistarium.features.characters.domain.Character
@@ -10,40 +8,44 @@ import kotlinx.coroutines.flow.map
 
 class CharacterLocalDataSource(
     private val characterDao: CharacterDao,
-    private val gson: Gson = Gson()
+    private val mapper: CharacterMapper
 ) {
 
     fun getCharacters(): Flow<List<Character>> {
         return characterDao.getAllCharacters().map { entities ->
-            entities.map { it.toDomain() }
+            mapper.toDomainList(entities)
         }
     }
 
     fun getCharacterById(id: String): Flow<Character?> {
-        return characterDao.getCharacterById(id).map { it?.toDomain() }
-    }
-
-    suspend fun saveCharacters(characters: List<CharacterEntity>) {
-        characterDao.insertCharacters(characters)
-    }
-
-    suspend fun saveCharacter(character: CharacterEntity) {
-        characterDao.insertCharacter(character)
-    }
-
-    private fun CharacterEntity.toDomain(): Character {
-        val stats = try {
-            val statsMap: Map<String, Any> = gson.fromJson(statsJson, object : TypeToken<Map<String, Any>>() {}.type)
-            statsMap.mapValues { (_, value) -> (value as? Number)?.toInt() ?: 0 }
-        } catch (_: Exception) {
-            emptyMap()
+        return characterDao.getCharacterById(id).map { entity ->
+            entity?.let { mapper.toDomain(it) }
         }
-        return Character(
-            id = id,
-            name = name,
-            description = description,
-            imageUrl = imageUrl,
-            stats = stats
-        )
+    }
+
+    fun getFavoriteCharacters(): Flow<List<Character>> {
+        return characterDao.getFavoriteCharacters().map { entities ->
+            mapper.toDomainList(entities)
+        }
+    }
+
+    suspend fun saveCharacters(characters: List<Character>) {
+        characterDao.insertCharacters(mapper.toEntityList(characters))
+    }
+
+    suspend fun saveCharacter(character: Character) {
+        characterDao.insertCharacter(mapper.toEntity(character))
+    }
+
+    suspend fun updateFavoriteStatus(characterId: String, isFavorite: Boolean) {
+        characterDao.updateFavoriteStatus(characterId, isFavorite)
+    }
+
+    suspend fun deleteCharacter(characterId: String) {
+        characterDao.deleteCharacter(characterId)
+    }
+
+    suspend fun searchCharacters(query: String): List<Character> {
+        return mapper.toDomainList(characterDao.searchCharacters("%$query%"))
     }
 }
