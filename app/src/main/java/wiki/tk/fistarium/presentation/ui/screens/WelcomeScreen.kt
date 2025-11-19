@@ -12,7 +12,8 @@ import wiki.tk.fistarium.R
 @Composable
 fun WelcomeScreen(
     onLoginClick: () -> Unit,
-    onRegisterClick: () -> Unit
+    onRegisterClick: () -> Unit,
+    onGuestClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -55,6 +56,15 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.register))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = onGuestClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Continue as Guest")
             }
         }
     }

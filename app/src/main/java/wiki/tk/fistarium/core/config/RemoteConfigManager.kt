@@ -3,7 +3,6 @@ package wiki.tk.fistarium.core.config
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.tasks.await
-import wiki.tk.fistarium.R
 
 /**
  * Manager for Firebase Remote Config

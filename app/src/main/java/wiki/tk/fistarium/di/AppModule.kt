@@ -4,19 +4,15 @@ import androidx.room.Room
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.LocalCacheSettings
-import com.google.firebase.firestore.MemoryCacheSettings
-import com.google.gson.Gson
+import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import wiki.tk.fistarium.features.characters.data.local.AppDatabase
 import wiki.tk.fistarium.features.characters.data.local.CharacterLocalDataSource
 import wiki.tk.fistarium.features.characters.data.local.CharacterMapper
-import wiki.tk.fistarium.features.characters.data.local.CharacterSeeder
 import wiki.tk.fistarium.features.auth.data.AuthRepositoryImpl
 import wiki.tk.fistarium.features.characters.data.remote.CharacterRemoteDataSource
-import wiki.tk.fistarium.features.characters.data.remote.CharacterDataSeeder
 import wiki.tk.fistarium.features.characters.data.CharacterRepositoryImpl
 import wiki.tk.fistarium.features.auth.domain.AuthRepository
 import wiki.tk.fistarium.features.characters.domain.CharacterRepository
@@ -45,14 +41,11 @@ val appModule = module {
     // Notifications
     single { wiki.tk.fistarium.features.notification.domain.NotificationManager() }
 
-    // Gson
-    single { Gson() }
+    // Json
+    single { Json { ignoreUnknownKeys = true; isLenient = true } }
 
     // Mappers
     single { CharacterMapper(get()) }
-
-    // Seeder
-    single { CharacterSeeder() }
 
     // Network Monitor
     single { wiki.tk.fistarium.core.utils.NetworkMonitor(androidContext()) }
@@ -69,9 +62,6 @@ val appModule = module {
         
         CharacterRemoteDataSource(firestore, get())
     }
-    
-    // Remote Data Seeder (for dev/testing)
-    single { CharacterDataSeeder() }
 
     // Repositories
     single<AuthRepository> { AuthRepositoryImpl() }
@@ -83,5 +73,5 @@ val appModule = module {
 
     // ViewModels
     viewModel { AuthViewModel(get()) }
-    viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
+    viewModel { CharacterViewModel(get(), get(), get(), get()) }
 }

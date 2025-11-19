@@ -1,18 +1,17 @@
 package wiki.tk.fistarium.features.characters.data.remote
 
-import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.json.Json
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.FirebaseFirestoreException.Code
+import timber.log.Timber
 import wiki.tk.fistarium.features.characters.domain.*
 
 class CharacterRemoteDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val gson: Gson = Gson()
+    private val json: Json = Json { ignoreUnknownKeys = true; isLenient = true }
 ) {
 
     private companion object {
@@ -21,27 +20,30 @@ class CharacterRemoteDataSource(
     }
 
     suspend fun fetchCharacters(): Result<List<Character>> {
-        Log.d(TAG, "fetchCharacters: Starting Firestore query, currentUser=${FirebaseAuth.getInstance().currentUser?.uid}")
+        Timber.tag(TAG)
+            .d("fetchCharacters: Starting Firestore query, currentUser=${FirebaseAuth.getInstance().currentUser?.uid}")
         return try {
             val snapshot = firestore.collection(COLLECTION_CHARACTERS).get().await()
             val characters = snapshot.documents.mapNotNull { doc ->
                 doc.toCharacter()
             }
-            Log.d(TAG, "fetchCharacters: Success, fetched ${characters.size} characters")
+            Timber.tag(TAG).d("fetchCharacters: Success, fetched ${characters.size} characters")
             Result.success(characters)
         } catch (e: Exception) {
-            Log.e(TAG, "fetchCharacters: Error occurred", e)
+            Timber.tag(TAG).e(e, "fetchCharacters: Error occurred")
             // If permission denied and no authenticated user, try anonymous sign-in and retry once
             if (isPermissionDenied(e)) {
-                Log.w(TAG, "fetchCharacters: PERMISSION_DENIED detected, attempting anonymous auth + retry")
+                Timber.tag(TAG)
+                    .w("fetchCharacters: PERMISSION_DENIED detected, attempting anonymous auth + retry")
                 try {
                     ensureAnonymousAuth()
                     val snapshot = firestore.collection(COLLECTION_CHARACTERS).get().await()
                     val characters = snapshot.documents.mapNotNull { doc -> doc.toCharacter() }
-                    Log.d(TAG, "fetchCharacters: Retry successful after auth, fetched ${characters.size} characters")
+                    Timber.tag(TAG)
+                        .d("fetchCharacters: Retry successful after auth, fetched ${characters.size} characters")
                     return Result.success(characters)
                 } catch (ex: Exception) {
-                    Log.e(TAG, "fetchCharacters: Retry failed after auth", ex)
+                    Timber.tag(TAG).e(ex, "fetchCharacters: Retry failed after auth")
                     return Result.failure(ex)
                 }
             }
@@ -50,24 +52,27 @@ class CharacterRemoteDataSource(
     }
 
     suspend fun fetchCharacterById(id: String): Result<Character?> {
-        Log.d(TAG, "fetchCharacterById: Starting query for id=$id, currentUser=${FirebaseAuth.getInstance().currentUser?.uid}")
+        Timber.tag(TAG)
+            .d("fetchCharacterById: Starting query for id=$id, currentUser=${FirebaseAuth.getInstance().currentUser?.uid}")
         return try {
             val doc = firestore.collection(COLLECTION_CHARACTERS).document(id).get().await()
             val character = doc.toCharacter()
-            Log.d(TAG, "fetchCharacterById: Success, character=${character?.name ?: "null"}")
+            Timber.tag(TAG).d("fetchCharacterById: Success, character=${character?.name ?: "null"}")
             Result.success(character)
         } catch (e: Exception) {
-            Log.e(TAG, "fetchCharacterById: Error occurred for id=$id", e)
+            Timber.tag(TAG).e(e, "fetchCharacterById: Error occurred for id=$id")
             if (isPermissionDenied(e)) {
-                Log.w(TAG, "fetchCharacterById: PERMISSION_DENIED detected, attempting anonymous auth + retry")
+                Timber.tag(TAG)
+                    .w("fetchCharacterById: PERMISSION_DENIED detected, attempting anonymous auth + retry")
                 try {
                     ensureAnonymousAuth()
                     val doc = firestore.collection(COLLECTION_CHARACTERS).document(id).get().await()
                     val character = doc.toCharacter()
-                    Log.d(TAG, "fetchCharacterById: Retry successful after auth, character=${character?.name ?: "null"}")
+                    Timber.tag(TAG)
+                        .d("fetchCharacterById: Retry successful after auth, character=${character?.name ?: "null"}")
                     return Result.success(character)
                 } catch (ex: Exception) {
-                    Log.e(TAG, "fetchCharacterById: Retry failed after auth", ex)
+                    Timber.tag(TAG).e(ex, "fetchCharacterById: Retry failed after auth")
                     return Result.failure(ex)
                 }
             }
@@ -157,7 +162,7 @@ class CharacterRemoteDataSource(
             else -> e.message?.contains("PERMISSION_DENIED") == true
         }
         if (isDenied) {
-            Log.w(TAG, "PERMISSION_DENIED detected: ${e.message}")
+            Timber.tag(TAG).w("PERMISSION_DENIED detected: ${e.message}")
         }
         return isDenied
     }
@@ -167,16 +172,18 @@ class CharacterRemoteDataSource(
         val currentUser = auth.currentUser
         
         if (currentUser == null) {
-            Log.d(TAG, "ensureAnonymousAuth: No user, signing in anonymously...")
+            Timber.tag(TAG).d("ensureAnonymousAuth: No user, signing in anonymously...")
             try {
                 auth.signInAnonymously().await()
-                Log.d(TAG, "ensureAnonymousAuth: Anonymous sign-in successful, UID=${auth.currentUser?.uid}")
+                Timber.tag(TAG)
+                    .d("ensureAnonymousAuth: Anonymous sign-in successful, UID=${auth.currentUser?.uid}")
             } catch (e: Exception) {
-                Log.e(TAG, "ensureAnonymousAuth: Anonymous sign-in failed", e)
+                Timber.tag(TAG).e(e, "ensureAnonymousAuth: Anonymous sign-in failed")
                 throw e
             }
         } else {
-            Log.d(TAG, "✅ ensureAnonymousAuth: User already exists, UID=${currentUser.uid}, isAnonymous=${currentUser.isAnonymous}")
+            Timber.tag(TAG)
+                .d("ensureAnonymousAuth: User already exists, UID=${currentUser.uid}, isAnonymous=${currentUser.isAnonymous}")
         }
     }
 
@@ -193,10 +200,10 @@ class CharacterRemoteDataSource(
                 fightingStyle = data["fightingStyle"] as? String,
                 country = data["country"] as? String,
                 difficulty = data["difficulty"] as? String,
-                moveList = gson.fromJson(data["moveList"] as? String ?: "[]", object : TypeToken<List<Move>>() {}.type) ?: emptyList(),
-                combos = gson.fromJson(data["combos"] as? String ?: "[]", object : TypeToken<List<Combo>>() {}.type) ?: emptyList(),
-                frameData = gson.fromJson(data["frameData"] as? String ?: "{}", object : TypeToken<Map<String, FrameDataEntry>>() {}.type) ?: emptyMap(),
-                translations = gson.fromJson(data["translations"] as? String ?: "{}", object : TypeToken<Map<String, CharacterTranslation>>() {}.type) ?: emptyMap(),
+                moveList = json.decodeFromString<List<Move>>(data["moveList"] as? String ?: "[]"),
+                combos = json.decodeFromString<List<Combo>>(data["combos"] as? String ?: "[]"),
+                frameData = json.decodeFromString<Map<String, FrameDataEntry>>(data["frameData"] as? String ?: "{}"),
+                translations = json.decodeFromString<Map<String, CharacterTranslation>>(data["translations"] as? String ?: "{}"),
                 createdBy = data["createdBy"] as? String,
                 createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis(),
                 updatedBy = data["updatedBy"] as? String,
@@ -221,10 +228,10 @@ class CharacterRemoteDataSource(
             "fightingStyle" to fightingStyle,
             "country" to country,
             "difficulty" to difficulty,
-            "moveList" to gson.toJson(moveList),
-            "combos" to gson.toJson(combos),
-            "frameData" to gson.toJson(frameData),
-            "translations" to gson.toJson(translations),
+            "moveList" to json.encodeToString(moveList),
+            "combos" to json.encodeToString(combos),
+            "frameData" to json.encodeToString(frameData),
+            "translations" to json.encodeToString(translations),
             "createdBy" to createdBy,
             "createdAt" to createdAt,
             "updatedBy" to updatedBy,

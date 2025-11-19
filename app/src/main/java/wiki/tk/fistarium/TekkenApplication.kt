@@ -1,7 +1,6 @@
 package wiki.tk.fistarium
 
 import android.app.Application
-import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.appcheck.FirebaseAppCheck
@@ -12,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import timber.log.Timber
 import wiki.tk.fistarium.di.appModule
 
 class TekkenApplication : Application() {
@@ -22,18 +22,18 @@ class TekkenApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "Application onCreate started")
+        Timber.tag(TAG).d("Application onCreate started")
 
         // Initialize Koin first
         startKoin {
             androidContext(this@TekkenApplication)
             modules(appModule)
         }
-        Log.d(TAG, "Koin initialized")
+        Timber.tag(TAG).d("Koin initialized")
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        Log.d(TAG, "Firebase initialized")
+        Timber.tag(TAG).d("Firebase initialized")
 
         // Initialize App Check with Debug Provider (dev/testing mode)
         // For production, replace with SafetyNet or Play Integrity provider
@@ -42,17 +42,17 @@ class TekkenApplication : Application() {
             appCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance()
             )
-            Log.d(TAG, "App Check initialized (Debug mode)")
+            Timber.tag(TAG).d("App Check initialized (Debug mode)")
         } catch (e: Exception) {
-            Log.e(TAG, "App Check initialization failed", e)
+            Timber.tag(TAG).e(e, "App Check initialization failed")
         }
 
         // Initialize Analytics (ensures Remote Config ABT can register experiments)
         try {
             FirebaseAnalytics.getInstance(this)
-            Log.d(TAG, "Analytics initialized")
+            Timber.tag(TAG).d("Analytics initialized")
         } catch (e: Exception) {
-            Log.e(TAG, "Analytics initialization failed", e)
+            Timber.tag(TAG).e(e, "Analytics initialization failed")
         }
 
         // Perform anonymous sign-in if no user is logged in
@@ -62,22 +62,24 @@ class TekkenApplication : Application() {
                 val currentUser = auth.currentUser
                 
                 if (currentUser == null) {
-                    Log.d(TAG, "No user logged in, attempting anonymous sign-in...")
+                    Timber.tag(TAG).d("No user logged in, attempting anonymous sign-in...")
                     auth.signInAnonymously().addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            Log.d(TAG, "Anonymous sign-in successful: UID=${auth.currentUser?.uid}")
+                            Timber.tag(TAG)
+                                .d("Anonymous sign-in successful: UID=${auth.currentUser?.uid}")
                         } else {
-                            Log.e(TAG, "Anonymous sign-in failed", task.exception)
+                            Timber.tag(TAG).e(task.exception, "Anonymous sign-in failed")
                         }
                     }
                 } else {
-                    Log.d(TAG, "User already logged in: UID=${currentUser.uid}, isAnonymous=${currentUser.isAnonymous}")
+                    Timber.tag(TAG)
+                        .d("User already logged in: UID=${currentUser.uid}, isAnonymous=${currentUser.isAnonymous}")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Auth check/sign-in failed", e)
+                Timber.tag(TAG).e(e, "Auth check/sign-in failed")
             }
         }
-        
-        Log.d(TAG, "Application onCreate completed")
+
+        Timber.tag(TAG).d("Application onCreate completed")
     }
 }

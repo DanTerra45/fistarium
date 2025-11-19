@@ -45,6 +45,10 @@ class AuthViewModel(private val authUseCase: AuthUseCase) : ViewModel() {
         }
     }
 
+    fun continueAsGuest() {
+        _authState.value = AuthState.Guest
+    }
+
     fun getCurrentUserId(): String? {
         return authUseCase.getCurrentUserId()
     }
@@ -54,6 +58,7 @@ class AuthViewModel(private val authUseCase: AuthUseCase) : ViewModel() {
         object Loading : AuthState()
         object LoggedIn : AuthState()
         object Registered : AuthState()
+        object Guest : AuthState()
         data class Error(val message: String) : AuthState()
     }
 }

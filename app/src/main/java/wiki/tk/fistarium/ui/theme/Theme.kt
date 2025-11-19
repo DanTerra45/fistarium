@@ -12,51 +12,41 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = FistRed80,
-    onPrimary = FistBlack,
-    primaryContainer = FistRed40,
-    onPrimaryContainer = FistWhite,
-    secondary = FistGold80,
-    onSecondary = FistBlack,
-    secondaryContainer = FistGold40,
-    onSecondaryContainer = FistWhite,
-    tertiary = FistGrey80,
-    onTertiary = FistBlack,
-    background = FistBlack,
-    onBackground = FistWhite,
-    surface = Color(0xFF1E1E1E),
-    onSurface = FistWhite,
-    surfaceVariant = Color(0xFF2A2A2A),
-    onSurfaceVariant = FistGrey80
+    primary = TekkenBlue,
+    onPrimary = TekkenWhite,
+    primaryContainer = TekkenPurple,
+    onPrimaryContainer = TekkenWhite,
+    secondary = TekkenElectricBlue,
+    onSecondary = TekkenDarkBackground,
+    secondaryContainer = TekkenGold,
+    onSecondaryContainer = TekkenDarkBackground,
+    tertiary = TekkenRed,
+    onTertiary = TekkenWhite,
+    background = TekkenDarkBackground,
+    onBackground = TekkenWhite,
+    surface = TekkenSurface,
+    onSurface = TekkenWhite,
+    surfaceVariant = TekkenSurfaceVariant,
+    onSurfaceVariant = TekkenGrey
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = FistRed40,
-    onPrimary = FistWhite,
-    primaryContainer = FistRed80,
-    onPrimaryContainer = FistBlack,
-    secondary = FistGold40,
-    onSecondary = FistBlack,
-    secondaryContainer = FistGold80,
-    onSecondaryContainer = FistBlack,
-    tertiary = FistGrey40,
-    onTertiary = FistWhite,
-    background = FistWhite,
-    onBackground = FistBlack,
-    surface = Color(0xFFFAFAFA),
-    onSurface = FistBlack,
-    surfaceVariant = Color(0xFFF5F5F5),
-    onSurfaceVariant = FistGrey40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = TekkenBlue,
+    onPrimary = TekkenWhite,
+    primaryContainer = TekkenPurple,
+    onPrimaryContainer = TekkenWhite,
+    secondary = TekkenElectricBlue,
+    onSecondary = TekkenDarkBackground,
+    secondaryContainer = TekkenGold,
+    onSecondaryContainer = TekkenDarkBackground,
+    tertiary = TekkenRed,
+    onTertiary = TekkenWhite,
+    background = Color(0xFFF5F5F5),
+    onBackground = Color(0xFF121212),
+    surface = Color.White,
+    onSurface = Color(0xFF121212),
+    surfaceVariant = Color(0xFFEEEEEE),
+    onSurfaceVariant = Color(0xFF424242)
 )
 
 @Composable

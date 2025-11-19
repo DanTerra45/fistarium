@@ -11,14 +11,12 @@ import wiki.tk.fistarium.core.storage.ImageUploadManager
 import wiki.tk.fistarium.core.utils.NetworkMonitor
 import wiki.tk.fistarium.features.characters.domain.Character
 import wiki.tk.fistarium.features.characters.domain.CharacterUseCase
-import wiki.tk.fistarium.features.characters.data.remote.CharacterDataSeeder
 
 class CharacterViewModel(
     private val characterUseCase: CharacterUseCase,
     private val remoteConfigManager: RemoteConfigManager,
     private val imageUploadManager: ImageUploadManager,
-    private val networkMonitor: NetworkMonitor,
-    private val characterDataSeeder: CharacterDataSeeder
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val _characters = MutableStateFlow<List<Character>>(emptyList())
@@ -197,23 +195,8 @@ class CharacterViewModel(
         _uiState.value = UiState.Idle
     }
 
-    /**
-     * Seeds sample Tekken characters into Firestore.
-     * For development/testing purposes only.
-     */
-    fun seedSampleCharacters() {
-        viewModelScope.launch {
-            _syncState.value = SyncState.Loading
-            val result = characterDataSeeder.seedSampleCharacters()
-            _syncState.value = if (result.isSuccess) {
-                val count = result.getOrNull() ?: 0
-                // Trigger a sync to pull the new data
-                syncCharacters()
-                SyncState.Success
-            } else {
-                SyncState.Error(result.exceptionOrNull()?.message ?: "Failed to seed characters")
-            }
-        }
+    fun resetSyncState() {
+        _syncState.value = SyncState.Idle
     }
 
     sealed class SyncState {

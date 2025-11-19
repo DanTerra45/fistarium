@@ -1,7 +1,6 @@
 package wiki.tk.fistarium.features.characters.data.local
 
 import wiki.tk.fistarium.features.characters.data.local.dao.CharacterDao
-import wiki.tk.fistarium.features.characters.data.local.entity.CharacterEntity
 import wiki.tk.fistarium.features.characters.domain.Character
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

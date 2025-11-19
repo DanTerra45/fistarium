@@ -1,6 +1,8 @@
 package wiki.tk.fistarium.features.auth.presentation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +16,7 @@ import wiki.tk.fistarium.R
 fun RegisterScreen(
     onRegister: (String, String) -> Unit,
     onGoToLogin: () -> Unit,
+    onBack: () -> Unit,
     isLoading: Boolean,
     errorMessage: String?
 ) {
@@ -24,13 +27,26 @@ fun RegisterScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Text(
                 text = stringResource(R.string.register),
                 style = MaterialTheme.typography.headlineMedium,
@@ -61,7 +77,7 @@ fun RegisterScreen(
             }
 
             Button(
-                onClick = { onRegister(email, password) },
+                onClick = { onRegister(email.trim(), password) },
                 enabled = !isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -76,6 +92,7 @@ fun RegisterScreen(
             TextButton(onClick = onGoToLogin) {
                 Text(stringResource(R.string.have_account_login))
             }
+        }
         }
     }
 }

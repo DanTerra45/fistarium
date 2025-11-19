@@ -2,21 +2,23 @@ package wiki.tk.fistarium.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme Colors
-val FistRed40 = Color(0xFFD32F2F) // Bold red for primary actions
-val FistGold40 = Color(0xFFFFB300) // Gold accent
-val FistGrey40 = Color(0xFF616161)
+// Tekken 8 Inspired Colors
+val TekkenRed = Color(0xFFD32F2F)
+val TekkenBlue = Color(0xFF2979FF)
+val TekkenElectricBlue = Color(0xFF00E5FF)
+val TekkenPurple = Color(0xFF651FFF)
+val TekkenGold = Color(0xFFFFD740)
 
-// Dark Theme Colors
-val FistRed80 = Color(0xFFEF5350) // Lighter red for dark theme
-val FistGold80 = Color(0xFFFFCA28) // Lighter gold for dark theme
-val FistGrey80 = Color(0xFFEEEEEE)
+// Dark Theme Backgrounds
+val TekkenDarkBackground = Color(0xFF121212)
+val TekkenSurface = Color(0xFF1E1E1E)
+val TekkenSurfaceVariant = Color(0xFF2D2D2D)
 
-// Additional Colors
-val FistBlack = Color(0xFF1A1A1A)
-val FistWhite = Color(0xFFFAFAFA)
+// Text Colors
+val TekkenWhite = Color(0xFFFAFAFA)
+val TekkenGrey = Color(0xFFB0BEC5)
 
-// Legacy colors (keeping for compatibility)
+// Legacy colors (keeping for compatibility if needed, but can be removed later)
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

@@ -1,5 +1,8 @@
 package wiki.tk.fistarium.features.characters.domain
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Character(
     val id: String,
     val name: String,
@@ -23,6 +26,7 @@ data class Character(
     val isFavorite: Boolean = false // Local favorite flag
 )
 
+@Serializable
 data class Move(
     val id: String,
     val name: String,
@@ -32,6 +36,7 @@ data class Move(
     val notes: String? = null
 )
 
+@Serializable
 data class Combo(
     val id: String,
     val name: String,
@@ -43,6 +48,7 @@ data class Combo(
     val createdBy: String? = null
 )
 
+@Serializable
 data class FrameDataEntry(
     val startup: Int? = null,
     val onBlock: Int? = null,
@@ -51,6 +57,7 @@ data class FrameDataEntry(
     val notes: String? = null
 )
 
+@Serializable
 data class CharacterTranslation(
     val languageCode: String,
     val name: String,

@@ -1,14 +1,13 @@
 package wiki.tk.fistarium.features.characters.data.local
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.json.Json
 import wiki.tk.fistarium.features.characters.data.local.entity.CharacterEntity
 import wiki.tk.fistarium.features.characters.domain.*
 
 /**
  * Mapper to convert between domain and data layer models
  */
-class CharacterMapper(private val gson: Gson) {
+class CharacterMapper(private val json: Json) {
 
     fun toDomain(entity: CharacterEntity): Character {
         return Character(
@@ -17,23 +16,23 @@ class CharacterMapper(private val gson: Gson) {
             description = entity.description,
             imageUrl = entity.imageUrl,
             imageUrls = entity.imageUrlsJson?.let { 
-                gson.fromJson(it, object : TypeToken<List<String>>() {}.type) 
+                json.decodeFromString<List<String>>(it) 
             } ?: emptyList(),
-            stats = gson.fromJson(entity.statsJson, object : TypeToken<Map<String, Int>>() {}.type),
+            stats = json.decodeFromString<Map<String, Int>>(entity.statsJson),
             fightingStyle = entity.fightingStyle,
             country = entity.country,
             difficulty = entity.difficulty,
             moveList = entity.moveListJson?.let {
-                gson.fromJson(it, object : TypeToken<List<Move>>() {}.type)
+                json.decodeFromString<List<Move>>(it)
             } ?: emptyList(),
             combos = entity.combosJson?.let {
-                gson.fromJson(it, object : TypeToken<List<Combo>>() {}.type)
+                json.decodeFromString<List<Combo>>(it)
             } ?: emptyList(),
             frameData = entity.frameDataJson?.let {
-                gson.fromJson(it, object : TypeToken<Map<String, FrameDataEntry>>() {}.type)
+                json.decodeFromString<Map<String, FrameDataEntry>>(it)
             } ?: emptyMap(),
             translations = entity.translationsJson?.let {
-                gson.fromJson(it, object : TypeToken<Map<String, CharacterTranslation>>() {}.type)
+                json.decodeFromString<Map<String, CharacterTranslation>>(it)
             } ?: emptyMap(),
             createdBy = entity.createdBy,
             createdAt = entity.createdAt,
@@ -51,15 +50,15 @@ class CharacterMapper(private val gson: Gson) {
             name = character.name,
             description = character.description,
             imageUrl = character.imageUrl,
-            imageUrlsJson = if (character.imageUrls.isNotEmpty()) gson.toJson(character.imageUrls) else null,
-            statsJson = gson.toJson(character.stats),
+            imageUrlsJson = if (character.imageUrls.isNotEmpty()) json.encodeToString(character.imageUrls) else null,
+            statsJson = json.encodeToString(character.stats),
             fightingStyle = character.fightingStyle,
             country = character.country,
             difficulty = character.difficulty,
-            moveListJson = if (character.moveList.isNotEmpty()) gson.toJson(character.moveList) else null,
-            combosJson = if (character.combos.isNotEmpty()) gson.toJson(character.combos) else null,
-            frameDataJson = if (character.frameData.isNotEmpty()) gson.toJson(character.frameData) else null,
-            translationsJson = if (character.translations.isNotEmpty()) gson.toJson(character.translations) else null,
+            moveListJson = if (character.moveList.isNotEmpty()) json.encodeToString(character.moveList) else null,
+            combosJson = if (character.combos.isNotEmpty()) json.encodeToString(character.combos) else null,
+            frameDataJson = if (character.frameData.isNotEmpty()) json.encodeToString(character.frameData) else null,
+            translationsJson = if (character.translations.isNotEmpty()) json.encodeToString(character.translations) else null,
             createdBy = character.createdBy,
             createdAt = character.createdAt,
             updatedBy = character.updatedBy,

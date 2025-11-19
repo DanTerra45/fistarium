@@ -1,66 +1,59 @@
 [versions]
-# Android Gradle Plugin and Kotlin
-agp = "8.13.0"
-kotlin = "2.2.20"
+# Core & Build
+agp = "8.13.1"
+kotlin = "2.2.21"
+ksp = "2.2.21-2.0.4"
+googleGmsGoogleServices = "4.4.4"
 
-# AndroidX Core and UI
+# AndroidX Core & UI
 coreKtx = "1.17.0"
+coreSplash = "1.2.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
-composeBom = "2025.09.01"
+composeBom = "2025.11.00"
+pagingVersion = "3.3.6"
+
+# Navigation & Architecture
+navVersion = "2.9.6"
+
+# Networking & Serialization
+retrofit = "3.0.0"
+okhttp = "5.3.2"
+kotlinxSerialization = "1.9.0"
+
+# Data & Storage
+room = "2.8.3"
+datastorePreferences = "1.1.7"
+
+# Image Loading
+coil = "3.3.0"
+
+# Dependency Injection
+koin = "4.1.1"
+
+# Utilities
+timber = "5.0.1"
+
+# Firebase
+firebaseBom = "34.6.0"
+playServicesBase = "18.9.0"
 
 # Testing
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-
-# Navigation
-navVersion = "2.9.5"
-
-# DataStore
-datastorePreferences = "1.1.1"
-
-# JSON
-gson = "2.11.0"
-
-# Image Loading
-glide = "5.0.5"
-coilCompose = "2.7.0"
-
-# Dependency Injection
-koin = "4.1.1"
-
-# Database
-room = "2.8.1"
-
-# KSP
-ksp = "2.2.20-2.0.3"
-
-# Firebase and Google Services
-googleGmsGoogleServices = "4.4.3"
-firebaseBom = "34.3.0"
-playServicesBase = "18.9.0"
-
-# Mocking
 mockk = "1.14.6"
 
 [libraries]
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplash" }
 
-# Navigation
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navVersion" }
-
-# Testing
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-
-# AndroidX Lifecycle and Activity
+# Lifecycle & Activity
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 
-# Compose BOM and UI
+# Compose UI (BOM)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
@@ -71,30 +64,39 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
-# Image Loading
-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
+# Navigation
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navVersion" }
 
-# DataStore
-androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+# Paging
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingVersion" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingVersion" }
 
-# JSON
-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+# Images
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
+
+# Networking
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 # Dependency Injection
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 koin-androidx-navigation = { group = "io.insert-koin", name = "koin-androidx-navigation", version.ref = "koin" }
 
-# Database
+# Local Storage
 room-runtime = { group="androidx.room", name="room-runtime", version.ref="room"}
 room-compiler = { group="androidx.room", name="room-compiler", version.ref="room"}
 room-ktx = { group="androidx.room", name="room-ktx", version.ref="room"}
-room-rxjava2 = { group="androidx.room", name="room-rxjava2", version.ref="room"}
-room-rxjava3 = { group="androidx.room", name="room-rxjava3", version.ref="room"}
-room-guava = { group="androidx.room", name="room-guava", version.ref="room"}
-room-testing = { group="androidx.room", name="room-testing", version.ref="room"}
 room-paging = { group="androidx.room", name="room-paging", version.ref="room"}
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+
+# Utilities
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 # Firebase
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
@@ -106,23 +108,23 @@ firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
-
-# Google Play Services
 play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
 
-# Mocking
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+room-testing = { group="androidx.room", name="room-testing", version.ref="room"}
 
 [plugins]
-# Core Plugins
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-
-# Google Services
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
 [bundles]
-# Local bundles
-local = ["room-runtime", "room-ktx", "room-paging" ]
+networking = ["retrofit", "retrofit-converter-kotlinx-serialization", "okhttp", "okhttp-logging", "kotlinx-serialization-json"]
+room = ["room-runtime", "room-ktx", "room-paging"]
