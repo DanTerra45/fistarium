@@ -1,3 +1,4 @@
+@file:Suppress("UnstableApiUsage")
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.kotlin.serialization)
+}
+
+val isBuildingBundle = project.gradle.startParameter.taskNames.any {
+    it.contains("bundle") || it.contains("buildAllRelease")
 }
 
 android {
@@ -63,11 +68,13 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/NOTICE*"
         }
     }
     splits {
         abi {
-            isEnable = true
+            isEnable = !isBuildingBundle
             reset()
             include("arm64-v8a", "x86_64")
             isUniversalApk = true
@@ -75,9 +82,21 @@ android {
     }
 }
 
+tasks.register("buildAllRelease") {
+    group = "Build"
+    description = "Generates APKs (splits and universal) and the App Bundle (AAB) for release."
+    dependsOn("assembleRelease")
+    dependsOn("bundleRelease")
+    doLast {
+        println("APKs: build/outputs/apk/release/")
+        println("AABs: build/outputs/bundle/release/")
+    }
+}
+
 dependencies {
     // PRESENTATION LAYER (UI & State)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     
@@ -125,7 +144,6 @@ dependencies {
     implementation(libs.firebase.config)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.analytics)
-    implementation(libs.firebase.appcheck.debug)
     implementation(libs.firebase.messaging)
     implementation(libs.play.services.base)
 

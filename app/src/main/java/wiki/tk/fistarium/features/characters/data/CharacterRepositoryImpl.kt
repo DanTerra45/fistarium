@@ -1,5 +1,7 @@
 package wiki.tk.fistarium.features.characters.data
 
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.first
 import wiki.tk.fistarium.features.characters.data.local.CharacterLocalDataSource
 import wiki.tk.fistarium.features.characters.data.remote.CharacterRemoteDataSource
 import wiki.tk.fistarium.features.characters.domain.Character
@@ -8,7 +10,8 @@ import kotlinx.coroutines.flow.Flow
 
 class CharacterRepositoryImpl(
     private val localDataSource: CharacterLocalDataSource,
-    private val remoteDataSource: CharacterRemoteDataSource
+    private val remoteDataSource: CharacterRemoteDataSource,
+    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : CharacterRepository {
 
     override fun getCharacters(): Flow<List<Character>> {
@@ -80,6 +83,49 @@ class CharacterRepositoryImpl(
     override suspend fun toggleFavorite(characterId: String, isFavorite: Boolean): Result<Unit> {
         return try {
             localDataSource.updateFavoriteStatus(characterId, isFavorite)
+            
+            val userId = firebaseAuth.currentUser?.uid
+            if (userId != null) {
+                remoteDataSource.updateUserFavorite(userId, characterId, isFavorite)
+            }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun clearFavorites(): Result<Unit> {
+        return try {
+            localDataSource.clearAllFavorites()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun syncUserFavorites(userId: String): Result<Unit> {
+        return try {
+            // 1. Get local favorites (Guest favorites)
+            val localFavorites = localDataSource.getFavoriteCharacters().first().map { it.id }
+            
+            // 2. Get remote favorites
+            val remoteFavorites = remoteDataSource.getUserFavorites(userId).getOrThrow()
+            
+            // 3. Merge (Union)
+            val allFavorites = (localFavorites + remoteFavorites).distinct()
+            
+            // 4. Update Remote (Push local favorites to account)
+            val missingInRemote = localFavorites - remoteFavorites.toSet()
+            missingInRemote.forEach { id ->
+                remoteDataSource.updateUserFavorite(userId, id, true)
+            }
+            
+            // 5. Update Local (Pull remote favorites to device)
+            allFavorites.forEach { characterId ->
+                localDataSource.updateFavoriteStatus(characterId, true)
+            }
+            
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

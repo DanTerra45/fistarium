@@ -1,13 +1,11 @@
 package wiki.tk.fistarium.features.characters.presentation
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import wiki.tk.fistarium.core.config.RemoteConfigManager
-import wiki.tk.fistarium.core.storage.ImageUploadManager
 import wiki.tk.fistarium.core.utils.NetworkMonitor
 import wiki.tk.fistarium.features.characters.domain.Character
 import wiki.tk.fistarium.features.characters.domain.CharacterUseCase
@@ -15,12 +13,17 @@ import wiki.tk.fistarium.features.characters.domain.CharacterUseCase
 class CharacterViewModel(
     private val characterUseCase: CharacterUseCase,
     private val remoteConfigManager: RemoteConfigManager,
-    private val imageUploadManager: ImageUploadManager,
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val _characters = MutableStateFlow<List<Character>>(emptyList())
     val characters: StateFlow<List<Character>> = _characters
+
+    private val _selectedGameId = MutableStateFlow<String>("TK8")
+    val selectedGameId: StateFlow<String> = _selectedGameId
+
+    private val _filteredCharacters = MutableStateFlow<List<Character>>(emptyList())
+    val filteredCharacters: StateFlow<List<Character>> = _filteredCharacters
 
     private val _favoriteCharacters = MutableStateFlow<List<Character>>(emptyList())
     val favoriteCharacters: StateFlow<List<Character>> = _favoriteCharacters
@@ -40,9 +43,6 @@ class CharacterViewModel(
     private val _isOnline = MutableStateFlow(false)
     val isOnline: StateFlow<Boolean> = _isOnline
 
-    private val _imageUploadProgress = MutableStateFlow<ImageUploadManager.UploadResult?>(null)
-    val imageUploadProgress: StateFlow<ImageUploadManager.UploadResult?> = _imageUploadProgress
-
     // Feature flags from Remote Config
     val isEditingEnabled: Boolean get() = remoteConfigManager.isCharacterEditingEnabled()
     val isTranslationsEnabled: Boolean get() = remoteConfigManager.isTranslationsEnabled()
@@ -53,6 +53,15 @@ class CharacterViewModel(
         loadFavorites()
         observeConnectivity()
         fetchRemoteConfig()
+        
+        // Combine characters and selectedGameId to produce filteredCharacters
+        viewModelScope.launch {
+            kotlinx.coroutines.flow.combine(_characters, _selectedGameId) { chars, gameId ->
+                chars.filter { char -> char.games.contains(gameId) }
+            }.collect { filtered ->
+                _filteredCharacters.value = filtered
+            }
+        }
     }
 
     private fun loadCharacters() {
@@ -61,6 +70,10 @@ class CharacterViewModel(
                 _characters.value = chars
             }
         }
+    }
+
+    fun filterByGame(gameId: String) {
+        _selectedGameId.value = gameId
     }
 
     private fun loadFavorites() {
@@ -100,7 +113,7 @@ class CharacterViewModel(
     fun syncCharacters() {
         viewModelScope.launch {
             if (!_isOnline.value) {
-                _syncState.value = SyncState.Error("No internet connection")
+                // Don't show error for offline, just return
                 return@launch
             }
             
@@ -109,7 +122,14 @@ class CharacterViewModel(
             _syncState.value = if (result.isSuccess) {
                 SyncState.Success
             } else {
-                SyncState.Error(result.exceptionOrNull()?.message ?: "Sync failed")
+                val error = result.exceptionOrNull()
+                val message = error?.message ?: "Sync failed"
+                // Suppress PERMISSION_DENIED error for guest users or initial sync
+                if (message.contains("PERMISSION_DENIED")) {
+                    SyncState.Idle
+                } else {
+                    SyncState.Error(message)
+                }
             }
         }
     }
@@ -123,7 +143,9 @@ class CharacterViewModel(
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             val results = characterUseCase.searchCharacters(query)
-            _searchResults.value = results
+            // Filter results by the currently selected game
+            val currentGameId = _selectedGameId.value
+            _searchResults.value = results.filter { it.games.contains(currentGameId) }
             _uiState.value = UiState.Success
         }
     }
@@ -179,14 +201,6 @@ class CharacterViewModel(
                 UiState.CharacterDeleted
             } else {
                 UiState.Error(result.exceptionOrNull()?.message ?: "Failed to delete character")
-            }
-        }
-    }
-
-    fun uploadCharacterImage(imageUri: Uri, characterId: String) {
-        viewModelScope.launch {
-            imageUploadManager.uploadCharacterImage(imageUri, characterId).collect { result ->
-                _imageUploadProgress.value = result
             }
         }
     }

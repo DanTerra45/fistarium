@@ -4,9 +4,6 @@ import kotlinx.serialization.json.Json
 import wiki.tk.fistarium.features.characters.data.local.entity.CharacterEntity
 import wiki.tk.fistarium.features.characters.domain.*
 
-/**
- * Mapper to convert between domain and data layer models
- */
 class CharacterMapper(private val json: Json) {
 
     fun toDomain(entity: CharacterEntity): Character {
@@ -40,7 +37,10 @@ class CharacterMapper(private val json: Json) {
             updatedAt = entity.updatedAt,
             isOfficial = entity.isOfficial,
             version = entity.version,
-            isFavorite = entity.isFavorite
+            isFavorite = entity.isFavorite,
+            games = entity.gamesJson?.let {
+                json.decodeFromString<List<String>>(it)
+            } ?: listOf("TK8")
         )
     }
 
@@ -65,7 +65,8 @@ class CharacterMapper(private val json: Json) {
             updatedAt = character.updatedAt,
             isOfficial = character.isOfficial,
             version = character.version,
-            isFavorite = character.isFavorite
+            isFavorite = character.isFavorite,
+            gamesJson = json.encodeToString(character.games)
         )
     }
 

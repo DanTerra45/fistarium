@@ -1,13 +1,15 @@
 package wiki.tk.fistarium.features.characters.data.remote
 
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.serialization.json.Json
-import kotlinx.coroutines.tasks.await
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.FirebaseFirestoreException.Code
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import kotlinx.serialization.json.Json
 import timber.log.Timber
-import wiki.tk.fistarium.features.characters.domain.*
+import wiki.tk.fistarium.features.characters.domain.Character
+import wiki.tk.fistarium.features.characters.domain.CharacterTranslation
+import wiki.tk.fistarium.features.characters.domain.Combo
+import wiki.tk.fistarium.features.characters.domain.FrameDataEntry
+import wiki.tk.fistarium.features.characters.domain.Move
 
 class CharacterRemoteDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
@@ -31,22 +33,6 @@ class CharacterRemoteDataSource(
             Result.success(characters)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "fetchCharacters: Error occurred")
-            // If permission denied and no authenticated user, try anonymous sign-in and retry once
-            if (isPermissionDenied(e)) {
-                Timber.tag(TAG)
-                    .w("fetchCharacters: PERMISSION_DENIED detected, attempting anonymous auth + retry")
-                try {
-                    ensureAnonymousAuth()
-                    val snapshot = firestore.collection(COLLECTION_CHARACTERS).get().await()
-                    val characters = snapshot.documents.mapNotNull { doc -> doc.toCharacter() }
-                    Timber.tag(TAG)
-                        .d("fetchCharacters: Retry successful after auth, fetched ${characters.size} characters")
-                    return Result.success(characters)
-                } catch (ex: Exception) {
-                    Timber.tag(TAG).e(ex, "fetchCharacters: Retry failed after auth")
-                    return Result.failure(ex)
-                }
-            }
             Result.failure(e)
         }
     }
@@ -61,21 +47,6 @@ class CharacterRemoteDataSource(
             Result.success(character)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "fetchCharacterById: Error occurred for id=$id")
-            if (isPermissionDenied(e)) {
-                Timber.tag(TAG)
-                    .w("fetchCharacterById: PERMISSION_DENIED detected, attempting anonymous auth + retry")
-                try {
-                    ensureAnonymousAuth()
-                    val doc = firestore.collection(COLLECTION_CHARACTERS).document(id).get().await()
-                    val character = doc.toCharacter()
-                    Timber.tag(TAG)
-                        .d("fetchCharacterById: Retry successful after auth, character=${character?.name ?: "null"}")
-                    return Result.success(character)
-                } catch (ex: Exception) {
-                    Timber.tag(TAG).e(ex, "fetchCharacterById: Retry failed after auth")
-                    return Result.failure(ex)
-                }
-            }
             Result.failure(e)
         }
     }
@@ -89,19 +60,6 @@ class CharacterRemoteDataSource(
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
-            if (isPermissionDenied(e)) {
-                try {
-                    ensureAnonymousAuth()
-                    val data = character.toFirestoreMap()
-                    firestore.collection(COLLECTION_CHARACTERS)
-                        .document(character.id)
-                        .set(data)
-                        .await()
-                    return Result.success(Unit)
-                } catch (ex: Exception) {
-                    return Result.failure(ex)
-                }
-            }
             Result.failure(e)
         }
     }
@@ -115,19 +73,6 @@ class CharacterRemoteDataSource(
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
-            if (isPermissionDenied(e)) {
-                try {
-                    ensureAnonymousAuth()
-                    val data = character.toFirestoreMap()
-                    firestore.collection(COLLECTION_CHARACTERS)
-                        .document(character.id)
-                        .update(data)
-                        .await()
-                    return Result.success(Unit)
-                } catch (ex: Exception) {
-                    return Result.failure(ex)
-                }
-            }
             Result.failure(e)
         }
     }
@@ -140,50 +85,39 @@ class CharacterRemoteDataSource(
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
-            if (isPermissionDenied(e)) {
-                try {
-                    ensureAnonymousAuth()
-                    firestore.collection(COLLECTION_CHARACTERS)
-                        .document(characterId)
-                        .delete()
-                        .await()
-                    return Result.success(Unit)
-                } catch (ex: Exception) {
-                    return Result.failure(ex)
-                }
-            }
             Result.failure(e)
         }
     }
 
-    private fun isPermissionDenied(e: Exception): Boolean {
-        val isDenied = when (e) {
-            is FirebaseFirestoreException -> e.code == Code.PERMISSION_DENIED
-            else -> e.message?.contains("PERMISSION_DENIED") == true
+    suspend fun getUserFavorites(userId: String): Result<List<String>> {
+        return try {
+            val snapshot = firestore.collection("users")
+                .document(userId)
+                .collection("favorites")
+                .get()
+                .await()
+            val favoriteIds = snapshot.documents.map { it.id }
+            Result.success(favoriteIds)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-        if (isDenied) {
-            Timber.tag(TAG).w("PERMISSION_DENIED detected: ${e.message}")
-        }
-        return isDenied
     }
 
-    private suspend fun ensureAnonymousAuth() {
-        val auth = FirebaseAuth.getInstance()
-        val currentUser = auth.currentUser
-        
-        if (currentUser == null) {
-            Timber.tag(TAG).d("ensureAnonymousAuth: No user, signing in anonymously...")
-            try {
-                auth.signInAnonymously().await()
-                Timber.tag(TAG)
-                    .d("ensureAnonymousAuth: Anonymous sign-in successful, UID=${auth.currentUser?.uid}")
-            } catch (e: Exception) {
-                Timber.tag(TAG).e(e, "ensureAnonymousAuth: Anonymous sign-in failed")
-                throw e
+    suspend fun updateUserFavorite(userId: String, characterId: String, isFavorite: Boolean): Result<Unit> {
+        return try {
+            val favoritesRef = firestore.collection("users")
+                .document(userId)
+                .collection("favorites")
+                .document(characterId)
+            
+            if (isFavorite) {
+                favoritesRef.set(mapOf("timestamp" to com.google.firebase.Timestamp.now())).await()
+            } else {
+                favoritesRef.delete().await()
             }
-        } else {
-            Timber.tag(TAG)
-                .d("ensureAnonymousAuth: User already exists, UID=${currentUser.uid}, isAnonymous=${currentUser.isAnonymous}")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -194,12 +128,14 @@ class CharacterRemoteDataSource(
                 id = this.id,
                 name = data["name"] as? String ?: return null,
                 description = data["description"] as? String ?: "",
+                story = data["story"] as? String,
                 imageUrl = data["imageUrl"] as? String,
                 imageUrls = (data["imageUrls"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
                 stats = (data["stats"] as? Map<*, *>)?.mapKeys { it.key.toString() }?.mapValues { (it.value as? Number)?.toInt() ?: 0 } ?: emptyMap(),
                 fightingStyle = data["fightingStyle"] as? String,
                 country = data["country"] as? String,
                 difficulty = data["difficulty"] as? String,
+                games = (data["games"] as? List<*>)?.mapNotNull { it as? String } ?: listOf("TK8"),
                 moveList = json.decodeFromString<List<Move>>(data["moveList"] as? String ?: "[]"),
                 combos = json.decodeFromString<List<Combo>>(data["combos"] as? String ?: "[]"),
                 frameData = json.decodeFromString<Map<String, FrameDataEntry>>(data["frameData"] as? String ?: "{}"),
@@ -222,12 +158,14 @@ class CharacterRemoteDataSource(
         return mapOf(
             "name" to name,
             "description" to description,
+            "story" to story,
             "imageUrl" to imageUrl,
             "imageUrls" to imageUrls,
             "stats" to stats,
             "fightingStyle" to fightingStyle,
             "country" to country,
             "difficulty" to difficulty,
+            "games" to games,
             "moveList" to json.encodeToString(moveList),
             "combos" to json.encodeToString(combos),
             "frameData" to json.encodeToString(frameData),

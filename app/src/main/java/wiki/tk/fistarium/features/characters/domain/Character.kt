@@ -7,6 +7,7 @@ data class Character(
     val id: String,
     val name: String,
     val description: String,
+    val story: String? = null,
     val imageUrl: String? = null,
     val imageUrls: List<String> = emptyList(), // Multiple images gallery
     val stats: Map<String, Int> = emptyMap(), // e.g., "health" to 100, "attack" to 80, etc.
@@ -23,8 +24,34 @@ data class Character(
     val updatedAt: Long = System.currentTimeMillis(),
     val isOfficial: Boolean = true, // Official vs user-created
     val version: Int = 1, // For version control
-    val isFavorite: Boolean = false // Local favorite flag
-)
+    val isFavorite: Boolean = false, // Local favorite flag
+    val weakSide: String? = null, // e.g., "SSL" (Sidestep Left), "SSR", "SWL", "SWR"
+    val games: List<String> = listOf("TK8") // List of games this character appears in (e.g., "TK1", "TK2", "TK8")
+) {
+    fun getLocalizedName(languageCode: String): String {
+        return translations[languageCode]?.name ?: name
+    }
+
+    fun getLocalizedDescription(languageCode: String): String {
+        return translations[languageCode]?.description ?: description
+    }
+
+    fun getLocalizedStory(languageCode: String): String {
+        return translations[languageCode]?.story ?: story ?: ""
+    }
+
+    fun getLocalizedFightingStyle(languageCode: String): String? {
+        return translations[languageCode]?.fightingStyle ?: fightingStyle
+    }
+
+    fun getLocalizedCountry(languageCode: String): String? {
+        return translations[languageCode]?.country ?: country
+    }
+
+    fun getLocalizedDifficulty(languageCode: String): String? {
+        return translations[languageCode]?.difficulty ?: difficulty
+    }
+}
 
 @Serializable
 data class Move(
@@ -62,6 +89,10 @@ data class CharacterTranslation(
     val languageCode: String,
     val name: String,
     val description: String,
+    val story: String? = null,
+    val fightingStyle: String? = null,
+    val country: String? = null,
+    val difficulty: String? = null,
     val translatedBy: String? = null,
     val translatedAt: Long = System.currentTimeMillis()
 )

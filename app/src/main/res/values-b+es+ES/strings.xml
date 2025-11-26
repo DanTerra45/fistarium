@@ -4,7 +4,7 @@
     
     <!-- Bienvenida y Autenticación -->
     <string name="welcome_title">Bienvenido a Fistarium</string>
-    <string name="welcome_subtitle">La Wiki Definitiva de Tekken 8</string>
+    <string name="welcome_subtitle">La wiki definitiva hecha por fans para conocer mas sobre la franquicia de Tekken</string>
     <string name="login">Iniciar Sesión</string>
     <string name="register">Registrarse</string>
     <string name="email">Correo Electrónico</string>
@@ -72,6 +72,12 @@
     
     <!-- Configuración -->
     <string name="settings_title">Configuración</string>
+    <string name="settings_dark_mode">Modo Oscuro</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_version">Versión</string>
     <string name="theme">Tema</string>
     <string name="theme_system">Predeterminado del Sistema</string>
     <string name="theme_light">Claro</string>
@@ -124,4 +130,71 @@
     <!-- Descripciones de Contenido -->
     <string name="content_desc_clear_search">Limpiar Búsqueda</string>
     <string name="content_desc_character_image">Imagen del Personaje</string>
+
+    <!-- Menú Principal -->
+    <string name="welcome_guest_title">¡Bienvenido a la Wiki!</string>
+    <string name="welcome_user_title">¡Bienvenido, %1$s!</string>
+    <string name="welcome_user_subtitle">¿Qué haremos hoy?</string>
+    <string name="menu_characters_title">Personajes</string>
+    <string name="menu_characters_subtitle">Frame data, estadísticas y más</string>
+    <string name="menu_history_title">Historia</string>
+    <string name="menu_history_subtitle">Lore e historia del juego</string>
+    <string name="menu_versus_title">Versus</string>
+    <string name="menu_versus_subtitle">Compara personajes y encuentra punishers</string>
+    
+    <!-- Perfil -->
+    <string name="edit_profile_title">Editar Perfil</string>
+    <string name="display_name_label">Nombre de Usuario</string>
+    <string name="guest_account_title">Cuenta de Invitado</string>
+    <string name="guest_account_message">Inicia sesión para guardar tus favoritos permanentemente en todos tus dispositivos.</string>
+    <string name="login_register_button">Iniciar Sesión / Registrarse</string>
+    <string name="fighter_default_name">Luchador</string>
+    <string name="member_since_label">Miembro Desde</string>
+    <string name="favorites_count_label">Favoritos</string>
+    <string name="favorite_characters_title">Personajes Favoritos</string>
+    <string name="no_favorites_message">¡Aún no hay favoritos. Ve a la lista de personajes y toca el icono del corazón!</string>
+    <string name="admin_badge">Administrador</string>
+    
+    <!-- Añadir/Editar Personaje -->
+    <string name="edit_character_title">Editar Personaje</string>
+    <string name="basic_info_title">Información Básica</string>
+    <string name="story_label">Historia</string>
+    <string name="details_title">Detalles</string>
+    <string name="difficulty_easy">Fácil</string>
+    <string name="difficulty_medium">Medio</string>
+    <string name="difficulty_hard">Difícil</string>
+    <string name="difficulty_very_hard">Muy Difícil</string>
+    <string name="stats_power">Poder</string>
+    <string name="stats_speed">Velocidad</string>
+    <string name="stats_range">Alcance</string>
+    <string name="stats_technique">Técnica</string>
+    <string name="stats_ease_of_use">Facilidad de Uso</string>
+    
+    <!-- Juegos -->
+    <string name="searching_in_game">Buscando en %1$s...</string>
+    <string name="select_game">Seleccionar Juego</string>
+    <string name="game_tk1">Tekken 1: El Primer Torneo</string>
+    <string name="game_tk2">Tekken 2: La Venganza de Kazuya</string>
+    <string name="game_tk3">Tekken 3: La Nueva Generación</string>
+    <string name="game_tk4">Tekken 4: Una Nueva Era</string>
+    <string name="game_tk5">Tekken 5: Resurrección Oscura</string>
+    <string name="game_tk6">Tekken 6: Rebelión del Linaje</string>
+    <string name="game_tk7">Tekken 7: Retribución del Destino</string>
+    <string name="game_tk8">Tekken 8: El Despertar Oscuro</string>
+    
+    <!-- Versus -->
+    <string name="versus_mode">Modo Versus</string>
+    <string name="versus_analysis">Análisis Versus</string>
+    <string name="fight_button">¡PELEA!</string>
+    <string name="punishers">Castigos</string>
+    <string name="weakness_analysis">Análisis de Debilidades</string>
+    <string name="player_1">Jugador 1</string>
+    <string name="player_2">Jugador 2</string>
+    
+    <!-- Extra -->
+    <string name="offline_reconnecting">Sin Conexión - Reconectando...</string>
+    <string name="add_character_hint">Añade tu propio personaje usando el botón + de arriba</string>
+    <string name="connect_to_load">Conéctate a Internet para cargar personajes</string>
+    <string name="image_url">URL de Imagen</string>
+    <string name="select_games">Seleccionar Juegos</string>
 </resources>

@@ -24,5 +24,6 @@ data class CharacterEntity(
     val updatedAt: Long = System.currentTimeMillis(),
     val isOfficial: Boolean = true,
     val version: Int = 1,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val gamesJson: String? = null // JSON array of games
 )

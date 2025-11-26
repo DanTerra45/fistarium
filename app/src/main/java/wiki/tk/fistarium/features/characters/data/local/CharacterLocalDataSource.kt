@@ -29,7 +29,17 @@ class CharacterLocalDataSource(
     }
 
     suspend fun saveCharacters(characters: List<Character>) {
-        characterDao.insertCharacters(mapper.toEntityList(characters))
+        // Preserve favorite status
+        val currentFavorites = characterDao.getFavoriteCharactersSync().map { it.id }.toSet()
+        
+        val entities = mapper.toEntityList(characters).map { entity ->
+            if (currentFavorites.contains(entity.id)) {
+                entity.copy(isFavorite = true)
+            } else {
+                entity
+            }
+        }
+        characterDao.insertCharacters(entities)
     }
 
     suspend fun saveCharacter(character: Character) {
@@ -38,6 +48,10 @@ class CharacterLocalDataSource(
 
     suspend fun updateFavoriteStatus(characterId: String, isFavorite: Boolean) {
         characterDao.updateFavoriteStatus(characterId, isFavorite)
+    }
+
+    suspend fun clearAllFavorites() {
+        characterDao.clearAllFavorites()
     }
 
     suspend fun deleteCharacter(characterId: String) {

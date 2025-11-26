@@ -9,7 +9,7 @@ import wiki.tk.fistarium.features.characters.data.local.entity.CharacterEntity
 
 @Database(
     entities = [CharacterEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -18,8 +18,6 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Add new columns with default values
-                // ajustar aqui dani asdasd
                 db.execSQL("ALTER TABLE characters ADD COLUMN imageUrlsJson TEXT DEFAULT NULL")
                 db.execSQL("ALTER TABLE characters ADD COLUMN fightingStyle TEXT DEFAULT NULL")
                 db.execSQL("ALTER TABLE characters ADD COLUMN country TEXT DEFAULT NULL")

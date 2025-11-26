@@ -18,6 +18,9 @@ interface CharacterDao {
     @Query("SELECT * FROM characters WHERE isFavorite = 1 ORDER BY name ASC")
     fun getFavoriteCharacters(): Flow<List<CharacterEntity>>
 
+    @Query("SELECT * FROM characters WHERE isFavorite = 1")
+    suspend fun getFavoriteCharactersSync(): List<CharacterEntity>
+
     @Query("SELECT * FROM characters WHERE name LIKE :query OR description LIKE :query OR fightingStyle LIKE :query")
     suspend fun searchCharacters(query: String): List<CharacterEntity>
 
@@ -29,6 +32,9 @@ interface CharacterDao {
 
     @Query("UPDATE characters SET isFavorite = :isFavorite WHERE id = :characterId")
     suspend fun updateFavoriteStatus(characterId: String, isFavorite: Boolean)
+
+    @Query("UPDATE characters SET isFavorite = 0")
+    suspend fun clearAllFavorites()
 
     @Query("DELETE FROM characters WHERE id = :characterId")
     suspend fun deleteCharacter(characterId: String)

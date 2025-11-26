@@ -1,29 +1,64 @@
 package wiki.tk.fistarium.features.characters.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.characters.domain.Character
-
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import kotlinx.coroutines.delay
+import wiki.tk.fistarium.presentation.ui.components.PingPongMarqueeText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,18 +66,20 @@ fun HomeScreen(
     characters: List<Character>,
     searchResults: List<Character> = emptyList(),
     onCharacterClick: (String) -> Unit,
-    onLogout: () -> Unit,
+    onBack: () -> Unit,
     onAddCharacter: () -> Unit = {},
     onSearch: (String) -> Unit = {},
     isOnline: Boolean = true,
     syncState: String = "",
     isLoading: Boolean = false,
     isGuest: Boolean = false,
-    onSyncMessageShown: () -> Unit = {}
+    userRole: String = "user",
+    onSyncMessageShown: () -> Unit = {},
+    title: String = stringResource(R.string.home_title),
+    searchHint: String = stringResource(R.string.search_hint)
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showSearch by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
     var showSyncSuccess by remember { mutableStateOf(false) }
 
     // Handle transient success message
@@ -55,30 +92,6 @@ fun HomeScreen(
         } else {
             showSyncSuccess = false
         }
-    }
-
-    // Logout confirmation dialog
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text(stringResource(R.string.logout_confirmation_title)) },
-            text = { Text(stringResource(R.string.logout_confirmation_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogout()
-                    }
-                ) {
-                    Text(stringResource(R.string.dialog_yes))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text(stringResource(R.string.dialog_no))
-                }
-            }
-        )
     }
 
     Scaffold(
@@ -95,7 +108,7 @@ fun HomeScreen(
                             onSearch = { onSearch(it) },
                             expanded = true,
                             onExpandedChange = { },
-                            placeholder = { Text(stringResource(R.string.search_hint)) },
+                            placeholder = { Text(searchHint) },
                             leadingIcon = {
                                 IconButton(onClick = {
                                     showSearch = false
@@ -138,7 +151,16 @@ fun HomeScreen(
                 }
             } else {
                 TopAppBar(
-                    title = { Text(stringResource(R.string.home_title)) },
+                    title = { 
+                        PingPongMarqueeText(
+                            text = title
+                        ) 
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        }
+                    },
                     actions = {
                         // Online/Offline indicator - Only show if offline
                         if (!isOnline) {
@@ -153,13 +175,10 @@ fun HomeScreen(
                         IconButton(onClick = { showSearch = true }) {
                             Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search_hint))
                         }
-                        if (!isGuest) {
+                        if (!isGuest && userRole == "admin") {
                             IconButton(onClick = onAddCharacter) {
                                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_character))
                             }
-                        }
-                        IconButton(onClick = { showLogoutDialog = true }) {
-                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.logout))
                         }
                     }
                 )
@@ -173,18 +192,16 @@ fun HomeScreen(
         ) {
             // Sync status bar
             AnimatedVisibility(
-                visible = showSyncSuccess || (!isOnline) || (syncState.isNotBlank() && syncState != "Sync successful"),
+                visible = showSyncSuccess || !isOnline || isLoading,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = if (!isOnline || (syncState.isNotBlank() && syncState != "Sync successful" && syncState != "Syncing...")) 
+                    color = if (!isOnline) 
                         MaterialTheme.colorScheme.errorContainer 
-                    else if (showSyncSuccess)
-                        MaterialTheme.colorScheme.primaryContainer
                     else
-                        MaterialTheme.colorScheme.secondaryContainer
+                        MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Row(
                         modifier = Modifier
@@ -194,14 +211,16 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = if (!isOnline) "Offline - Reconnecting..." else syncState,
+                            text = when {
+                                !isOnline -> stringResource(R.string.offline_reconnecting)
+                                showSyncSuccess -> stringResource(R.string.sync_success)
+                                else -> stringResource(R.string.syncing)
+                            },
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (!isOnline || (syncState.isNotBlank() && syncState != "Sync successful" && syncState != "Syncing..."))
+                            color = if (!isOnline)
                                 MaterialTheme.colorScheme.onErrorContainer
-                            else if (showSyncSuccess)
-                                MaterialTheme.colorScheme.onPrimaryContainer
                             else
-                                MaterialTheme.colorScheme.onSecondaryContainer
+                                MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
@@ -249,13 +268,13 @@ fun CharacterListContent(
                 
                 if (isOnline) {
                     Text(
-                        text = "Add your own character using the + button above",
+                        text = stringResource(R.string.add_character_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     Text(
-                        text = "Connect to the internet to load characters",
+                        text = stringResource(R.string.connect_to_load),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -281,6 +300,7 @@ fun CharacterListContent(
 
 @Composable
 fun CharacterCard(character: Character, onClick: () -> Unit) {
+    val currentLanguage = java.util.Locale.getDefault().language
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -299,6 +319,7 @@ fun CharacterCard(character: Character, onClick: () -> Unit) {
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
+                    alignment = Alignment.TopCenter,
                     alpha = 0.6f // Dim the image slightly so text pops
                 )
             }
@@ -330,7 +351,7 @@ fun CharacterCard(character: Character, onClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = character.name,
+                        text = character.getLocalizedName(currentLanguage),
                         style = MaterialTheme.typography.headlineSmall,
                         color = androidx.compose.ui.graphics.Color.White,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
@@ -354,7 +375,14 @@ fun CharacterCard(character: Character, onClick: () -> Unit) {
                     character.fightingStyle?.let {
                         SuggestionChip(
                             onClick = {},
-                            label = { Text(it, color = androidx.compose.ui.graphics.Color.White) },
+                            label = { 
+                                Text(
+                                    text = it, 
+                                    color = androidx.compose.ui.graphics.Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                ) 
+                            },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                             ),
@@ -364,7 +392,14 @@ fun CharacterCard(character: Character, onClick: () -> Unit) {
                     character.difficulty?.let {
                         SuggestionChip(
                             onClick = {},
-                            label = { Text(it, color = androidx.compose.ui.graphics.Color.White) },
+                            label = { 
+                                Text(
+                                    text = it, 
+                                    color = androidx.compose.ui.graphics.Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                ) 
+                            },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
                             ),
