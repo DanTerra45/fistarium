@@ -15,6 +15,7 @@
     <string name="logout">Cerrar Sesión</string>
     <string name="no_account_register">¿No tienes cuenta? Regístrate</string>
     <string name="have_account_login">¿Ya tienes cuenta? Inicia Sesión</string>
+    <string name="continue_as_guest">Continuar como Invitado</string>
     
     <!-- Navegación -->
     <string name="nav_home">Inicio</string>
@@ -100,6 +101,11 @@
     <string name="maintenance_mode">Modo de Mantenimiento</string>
     <string name="maintenance_message_default">Actualmente estamos realizando mantenimiento. Por favor, vuelve más tarde.</string>
     
+    <!-- Actualización -->
+    <string name="update_required_title">Actualización Requerida</string>
+    <string name="update_required_message">Hay una nueva versión disponible. Por favor actualiza para continuar.</string>
+    <string name="update_button">Actualizar</string>
+
     <!-- Varios -->
     <string name="official">Oficial</string>
     <string name="user_created">Creado por Usuario</string>

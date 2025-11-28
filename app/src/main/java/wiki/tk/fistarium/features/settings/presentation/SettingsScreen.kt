@@ -1,10 +1,5 @@
 package wiki.tk.fistarium.features.settings.presentation
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -17,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import wiki.tk.fistarium.BuildConfig
@@ -34,26 +28,6 @@ fun SettingsScreen(
     val context = LocalContext.current
     val themeMode by viewModel.themeMode.collectAsState(initial = 0)
     val appLanguage by viewModel.appLanguage.collectAsState(initial = "en")
-
-    var notificationsEnabled by remember {
-        mutableStateOf(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-            } else {
-                true
-            }
-        )
-    }
-
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            notificationsEnabled = isGranted
-        }
-    )
 
     Surface(
         modifier = Modifier.fillMaxSize(),

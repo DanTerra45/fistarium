@@ -14,8 +14,7 @@
     <string name="register_button">Crear cuenta</string>
     <string name="logout">Cerrar sesión</string>
     <string name="no_account_register">¿No tienes cuenta? Regístrate</string>
-    <string name="have_account_login">¿Ya tienes cuenta? Inicia sesión</string>
-    
+    <string name="have_account_login">¿Ya tienes cuenta? Inicia sesión</string>    <string name="continue_as_guest">Continuar como Invitado</string>    
     <!-- Navegación -->
     <string name="nav_home">Inicio</string>
     <string name="nav_favorites">Favoritos</string>

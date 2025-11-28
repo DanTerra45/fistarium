@@ -51,7 +51,7 @@ fun WelcomeScreen(
             )
             
             Text(
-                text = "The Ultimate Fan-Made Tekken Wiki",
+                text = stringResource(R.string.welcome_subtitle),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
@@ -103,7 +103,7 @@ fun WelcomeScreen(
                 onClick = onGuestClick,
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.Gray)
             ) {
-                Text("Continue as Guest")
+                Text(stringResource(R.string.continue_as_guest))
             }
         }
         

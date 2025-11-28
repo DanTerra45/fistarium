@@ -21,8 +21,8 @@ android {
         applicationId = "wiki.tk.fistarium"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = 2
+        versionName = "0.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -140,11 +140,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.database)
     implementation(libs.firebase.config)
-    implementation(libs.firebase.storage)
     implementation(libs.firebase.analytics)
-    implementation(libs.firebase.messaging)
     implementation(libs.play.services.base)
 
     // DI & UTILS (Infrastructure)
