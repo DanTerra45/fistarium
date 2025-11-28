@@ -43,12 +43,6 @@ val appModule = module {
     // Remote Config
     single { wiki.tk.fistarium.core.config.RemoteConfigManager() }
 
-    // Storage
-    single { wiki.tk.fistarium.core.storage.ImageUploadManager() }
-
-    // Notifications
-    single { wiki.tk.fistarium.features.notification.domain.NotificationManager() }
-
     // Json
     single { Json { ignoreUnknownKeys = true; isLenient = true } }
 

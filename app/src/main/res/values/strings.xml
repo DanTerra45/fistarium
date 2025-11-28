@@ -14,6 +14,7 @@
     <string name="logout">Logout</string>
     <string name="no_account_register">Don\'t have an account? Register</string>
     <string name="have_account_login">Already have an account? Login</string>
+    <string name="continue_as_guest">Continue as Guest</string>
     
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -99,6 +100,11 @@
     <string name="maintenance_mode">Maintenance Mode</string>
     <string name="maintenance_message_default">We are currently performing maintenance. Please check back later.</string>
     
+    <!-- Update -->
+    <string name="update_required_title">Update Required</string>
+    <string name="update_required_message">A new version of the app is available. Please update to continue.</string>
+    <string name="update_button">Update</string>
+
     <!-- Misc -->
     <string name="official">Official</string>
     <string name="user_created">User Created</string>

@@ -14,9 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
 import androidx.appcompat.app.AppCompatDelegate
@@ -25,7 +23,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import wiki.tk.fistarium.core.config.RemoteConfigManager
 import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
 import wiki.tk.fistarium.features.characters.presentation.CharacterViewModel
-import wiki.tk.fistarium.features.notification.domain.NotificationManager
 import wiki.tk.fistarium.features.settings.presentation.SettingsViewModel
 import wiki.tk.fistarium.features.versus.presentation.VersusViewModel
 import wiki.tk.fistarium.presentation.navigation.AppNavGraph
@@ -35,17 +32,11 @@ import wiki.tk.fistarium.ui.theme.FistariumTheme
 class MainActivity : ComponentActivity() {
 
     private val remoteConfigManager: RemoteConfigManager by inject()
-    private val notificationManager: NotificationManager by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // Subscribe to notifications
-        lifecycleScope.launch {
-            notificationManager.subscribeToAllTopics()
-        }
 
         setContent {
             val settingsViewModel: SettingsViewModel = koinViewModel()
@@ -93,22 +84,54 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
         }
     }
 
-    // Check maintenance mode
+    // Check maintenance mode and update
     var showMaintenanceDialog by remember { mutableStateOf(false) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(Unit) {
-        if (remoteConfigManager.isMaintenanceMode()) {
+        if (remoteConfigManager.isForceUpdateRequired() || 
+            !remoteConfigManager.isVersionCompatible(BuildConfig.VERSION_NAME)) {
+            showUpdateDialog = true
+        } else if (remoteConfigManager.isMaintenanceMode()) {
             showMaintenanceDialog = true
         }
     }
 
-    if (showMaintenanceDialog) {
+    if (showUpdateDialog) {
         AlertDialog(
-            onDismissRequest = { /* Can't dismiss */ },
-            title = { Text(stringResource(R.string.maintenance_mode)) },
-            text = { Text(remoteConfigManager.getMaintenanceMessage()) },
+            onDismissRequest = { /* Blocking */ },
+            title = { Text(stringResource(R.string.update_required_title)) },
+            text = { Text(stringResource(R.string.update_required_message)) },
             confirmButton = {
-                TextButton(onClick = { showMaintenanceDialog = false }) {
+                TextButton(onClick = {
+                    try {
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                            data = android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                            setPackage("com.android.vending")
+                        }
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        // Fallback to browser
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                            data = android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                        }
+                        context.startActivity(intent)
+                    }
+                }) {
+                    Text(stringResource(R.string.update_button))
+                }
+            }
+        )
+    } else if (showMaintenanceDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Blocking */ },
+            title = { Text(stringResource(R.string.maintenance_mode)) },
+            text = { Text(stringResource(R.string.maintenance_message_default)) },
+            confirmButton = {
+                TextButton(onClick = { 
+                    (context as? android.app.Activity)?.finish()
+                }) {
                     Text(stringResource(R.string.dialog_ok))
                 }
             }

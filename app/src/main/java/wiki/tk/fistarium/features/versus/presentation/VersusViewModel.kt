@@ -34,7 +34,8 @@ class VersusViewModel(
     private fun loadCharacters() {
         viewModelScope.launch {
             characterUseCase.getCharacters().collect { chars ->
-                _allCharacters.value = chars
+                // Filter only Tekken 8 characters for Versus mode
+                _allCharacters.value = chars.filter { it.games.contains("TK8") }
             }
         }
     }

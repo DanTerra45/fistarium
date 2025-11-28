@@ -14,27 +14,23 @@ class RemoteConfigManager {
     companion object {
         // Config Keys
         const val KEY_MAINTENANCE_MODE = "maintenance_mode"
-        const val KEY_MAINTENANCE_MESSAGE = "maintenance_message"
         const val KEY_MIN_APP_VERSION = "min_app_version"
         const val KEY_FORCE_UPDATE = "force_update"
         const val KEY_ENABLE_CHARACTER_EDITING = "enable_character_editing"
         const val KEY_ENABLE_TRANSLATIONS = "enable_translations"
         const val KEY_ENABLE_COMMENTS = "enable_comments"
         const val KEY_MAX_IMAGE_SIZE_MB = "max_image_size_mb"
-        const val KEY_WELCOME_MESSAGE = "welcome_message"
         const val KEY_FEATURED_CHARACTER_ID = "featured_character_id"
 
         // Default Values
         private val DEFAULTS = mapOf(
             KEY_MAINTENANCE_MODE to false,
-            KEY_MAINTENANCE_MESSAGE to "We are currently performing maintenance. Please check back later.",
             KEY_MIN_APP_VERSION to "0.0.1",
             KEY_FORCE_UPDATE to false,
             KEY_ENABLE_CHARACTER_EDITING to true,
             KEY_ENABLE_TRANSLATIONS to true,
             KEY_ENABLE_COMMENTS to true,
             KEY_MAX_IMAGE_SIZE_MB to 5L,
-            KEY_WELCOME_MESSAGE to "Welcome to Fistarium - The Ultimate Tekken 8 Wiki!",
             KEY_FEATURED_CHARACTER_ID to ""
         )
     }
@@ -65,7 +61,6 @@ class RemoteConfigManager {
 
     // Maintenance Mode
     fun isMaintenanceMode(): Boolean = remoteConfig.getBoolean(KEY_MAINTENANCE_MODE)
-    fun getMaintenanceMessage(): String = remoteConfig.getString(KEY_MAINTENANCE_MESSAGE)
 
     // Version Control
     fun getMinAppVersion(): String = remoteConfig.getString(KEY_MIN_APP_VERSION)
@@ -78,7 +73,6 @@ class RemoteConfigManager {
 
     // Configuration Values
     fun getMaxImageSizeMB(): Long = remoteConfig.getLong(KEY_MAX_IMAGE_SIZE_MB)
-    fun getWelcomeMessage(): String = remoteConfig.getString(KEY_WELCOME_MESSAGE)
     fun getFeaturedCharacterId(): String = remoteConfig.getString(KEY_FEATURED_CHARACTER_ID)
 
     /**
