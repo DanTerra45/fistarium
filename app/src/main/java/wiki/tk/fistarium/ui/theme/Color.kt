@@ -17,3 +17,11 @@ val TekkenSurfaceVariant = Color(0xFF2D2D2D)
 // Text Colors
 val TekkenWhite = Color(0xFFFAFAFA)
 val TekkenGrey = Color(0xFFB0BEC5)
+
+// Menu Card Colors (LOW priority - moved from hardcoded)
+val MenuCardCharacters = Color(0xFF3F51B5) // Indigo
+val MenuCardVersus = TekkenRed // Red - reuses TekkenRed
+val MenuCardHistory = Color(0xFF37474F) // Blue Grey
+
+// Status Colors
+val SafeGreen = Color(0xFF4CAF50)

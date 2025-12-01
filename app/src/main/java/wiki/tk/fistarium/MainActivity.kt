@@ -1,9 +1,9 @@
 package wiki.tk.fistarium
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
@@ -14,11 +14,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.navigation.compose.rememberNavController
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import wiki.tk.fistarium.core.config.RemoteConfigManager
 import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
@@ -27,9 +26,10 @@ import wiki.tk.fistarium.features.settings.presentation.SettingsViewModel
 import wiki.tk.fistarium.features.versus.presentation.VersusViewModel
 import wiki.tk.fistarium.presentation.navigation.AppNavGraph
 import wiki.tk.fistarium.presentation.navigation.NavRoutes
+import wiki.tk.fistarium.presentation.ui.components.LoadingOverlay
 import wiki.tk.fistarium.ui.theme.FistariumTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val remoteConfigManager: RemoteConfigManager by inject()
 
@@ -41,13 +41,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settingsViewModel: SettingsViewModel = koinViewModel()
             val themeMode by settingsViewModel.themeMode.collectAsState(initial = 0)
-            val appLanguage by settingsViewModel.appLanguage.collectAsState(initial = "en-US")
-
-            // Apply Language
-            LaunchedEffect(appLanguage) {
-                val appLocale = LocaleListCompat.forLanguageTags(appLanguage)
-                AppCompatDelegate.setApplicationLocales(appLocale)
-            }
 
             val darkTheme = when (themeMode) {
                 1 -> false // Light
@@ -73,14 +66,20 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
     val userRole by authViewModel.userRole.collectAsState()
     val uiState by characterViewModel.uiState.collectAsState()
     val isOnline by characterViewModel.isOnline.collectAsState()
+    
+    // Ready when auth state is determined (not Loading or Idle on first check)
+    val isReady = remember(authState) {
+        authState != AuthViewModel.AuthState.Loading
+    }
 
-    // Determine start destination based on auth state
-    val startDestination = remember {
-        val state = authViewModel.authState.value
-        if (state is AuthViewModel.AuthState.LoggedIn || state is AuthViewModel.AuthState.Guest) {
-            NavRoutes.MAIN_MENU
-        } else {
-            NavRoutes.WELCOME
+    // Determine start destination based on CURRENT auth state (not remembered)
+    val startDestination by remember(authState) {
+        derivedStateOf {
+            when (authState) {
+                is AuthViewModel.AuthState.LoggedIn,
+                is AuthViewModel.AuthState.Guest -> NavRoutes.MAIN_MENU
+                else -> NavRoutes.WELCOME
+            }
         }
     }
 
@@ -107,14 +106,14 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
                 TextButton(onClick = {
                     try {
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                            data = android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                            data = "https://play.google.com/store/apps/details?id=${context.packageName}".toUri()
                             setPackage("com.android.vending")
                         }
                         context.startActivity(intent)
                     } catch (e: Exception) {
                         // Fallback to browser
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                            data = android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                            data = "https://play.google.com/store/apps/details?id=${context.packageName}".toUri()
                         }
                         context.startActivity(intent)
                     }
@@ -142,61 +141,66 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        // Handle Auth State Changes
-        LaunchedEffect(authState) {
-            when (authState) {
-                is AuthViewModel.AuthState.LoggedIn -> {
-                    if (navController.currentDestination?.route == NavRoutes.WELCOME || 
-                        navController.currentDestination?.route == NavRoutes.LOGIN) {
+        LoadingOverlay(
+            isLoading = !isReady,
+            blurRadius = 25f
+        ) {
+            // Handle Auth State Changes
+            LaunchedEffect(authState) {
+                when (authState) {
+                    is AuthViewModel.AuthState.LoggedIn -> {
+                        if (navController.currentDestination?.route == NavRoutes.WELCOME || 
+                            navController.currentDestination?.route == NavRoutes.LOGIN) {
+                            navController.navigate(NavRoutes.MAIN_MENU) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
+                    is AuthViewModel.AuthState.Registered -> {
                         navController.navigate(NavRoutes.MAIN_MENU) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
-                }
-                is AuthViewModel.AuthState.Registered -> {
-                    navController.navigate(NavRoutes.MAIN_MENU) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
-                is AuthViewModel.AuthState.Guest -> {
-                    if (navController.currentDestination?.route == NavRoutes.WELCOME) {
-                        navController.navigate(NavRoutes.MAIN_MENU) {
-                            popUpTo(0) { inclusive = true }
+                    is AuthViewModel.AuthState.Guest -> {
+                        if (navController.currentDestination?.route == NavRoutes.WELCOME) {
+                            navController.navigate(NavRoutes.MAIN_MENU) {
+                                popUpTo(0) { inclusive = true }
+                            }
                         }
                     }
+                    is AuthViewModel.AuthState.Idle -> {
+                        // Do nothing, let navigation handle it
+                    }
+                    else -> {}
                 }
-                is AuthViewModel.AuthState.Idle -> {
-                    // Do nothing, let navigation handle it
-                }
-                else -> {}
             }
-        }
 
-        // Handle UI state changes
-        LaunchedEffect(uiState) {
-            when (uiState) {
-                is CharacterViewModel.UiState.CharacterCreated -> {
-                    navController.popBackStack()
-                    characterViewModel.clearUiState()
+            // Handle UI state changes
+            LaunchedEffect(uiState) {
+                when (uiState) {
+                    is CharacterViewModel.UiState.CharacterCreated -> {
+                        navController.popBackStack()
+                        characterViewModel.clearUiState()
+                    }
+                    is CharacterViewModel.UiState.CharacterUpdated -> {
+                        navController.popBackStack()
+                        characterViewModel.clearUiState()
+                    }
+                    else -> {}
                 }
-                is CharacterViewModel.UiState.CharacterUpdated -> {
-                    navController.popBackStack()
-                    characterViewModel.clearUiState()
-                }
-                else -> {}
             }
-        }
 
-        AppNavGraph(
-            navController = navController,
-            startDestination = startDestination,
-            authViewModel = authViewModel,
-            characterViewModel = characterViewModel,
-            versusViewModel = versusViewModel,
-            authState = authState,
-            userRole = userRole,
-            uiState = uiState,
-            isOnline = isOnline
-        )
+            AppNavGraph(
+                navController = navController,
+                startDestination = startDestination,
+                authViewModel = authViewModel,
+                characterViewModel = characterViewModel,
+                versusViewModel = versusViewModel,
+                authState = authState,
+                userRole = userRole,
+                uiState = uiState,
+                isOnline = isOnline
+            )
+        } // End LoadingOverlay content
     }
 }

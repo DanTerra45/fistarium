@@ -195,6 +195,18 @@
     <string name="weakness_analysis">Weakness Analysis</string>
     <string name="player_1">Player 1</string>
     <string name="player_2">Player 2</string>
+    <string name="vs_label">VS</string>
+    <string name="weak_to">Weak to: %1$s</string>
+    <string name="unknown">Unknown</string>
+    <string name="select_move">Select Move</string>
+    <string name="select_move_instruction">Select a move from %1$s to see how %2$s can punish it.</string>
+    <string name="move_label">Move: %1$s</string>
+    <string name="on_block_label">On Block: %1$s</string>
+    <string name="on_block_unknown">?</string>
+    <string name="safe_cannot_punish">SAFE! Cannot be punished.</string>
+    <string name="punishable_by_frames">Punishable by %1$d frames or faster.</string>
+    <string name="punishers_label">Punishers:</string>
+    <string name="damage_short">Dmg: %1$s</string>
     
     <!-- Extra -->
     <string name="offline_reconnecting">Offline - Reconnecting...</string>
@@ -202,4 +214,19 @@
     <string name="connect_to_load">Connect to the internet to load characters</string>
     <string name="image_url">Image URL</string>
     <string name="select_games">Select Games</string>
+    
+    <!-- Delete Account -->
+    <string name="delete_account_title">Delete Account</string>
+    <string name="delete_account_confirmation">Are you sure you want to delete your account? This action cannot be undone and all your data will be lost.</string>
+    <string name="delete_account_button">Delete Account</string>
+    
+    <!-- History Screen -->
+    <string name="history_title">History</string>
+    <string name="history_coming_soon">Coming Soon: Tekken History &amp; Lore</string>
+    
+    <!-- Frame Data Labels -->
+    <string name="frame_startup">Start</string>
+    <string name="frame_block">Block</string>
+    <string name="frame_hit">Hit</string>
+    <string name="frame_counter_hit">CH</string>
 </resources>

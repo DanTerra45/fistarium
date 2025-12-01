@@ -22,28 +22,32 @@ import coil3.compose.AsyncImage
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.characters.domain.Character
 import wiki.tk.fistarium.features.characters.domain.Move
+import wiki.tk.fistarium.ui.theme.SafeGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VersusResultScreen(
     onBack: () -> Unit,
-    viewModel: VersusViewModel
+    // State
+    comparisonResult: ComparisonResult?,
+    punisherResult: VersusViewModel.PunisherResult?,
+    // Events
+    onFindPunishers: (moveId: String, attacker: Character, defender: Character) -> Unit
 ) {
-    val result by viewModel.comparisonResult.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    if (result == null) {
-        // Should not happen if navigated correctly
+    if (comparisonResult == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    val p1 = result!!.p1
-    val p2 = result!!.p2
+    val p1 = comparisonResult.p1
+    val p2 = comparisonResult.p2
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.versus_analysis)) },
@@ -59,6 +63,7 @@ fun VersusResultScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .navigationBarsPadding()
         ) {
             // Header
             VersusHeader(p1, p2)
@@ -70,8 +75,13 @@ fun VersusResultScreen(
             }
 
             when (selectedTab) {
-                0 -> StatsComparisonView(p1, p2, result!!.statsDiff)
-                1 -> PunisherToolView(p1, p2, viewModel)
+                0 -> StatsComparisonView(p1, p2, comparisonResult.statsDiff)
+                1 -> PunisherToolView(
+                    p1 = p1,
+                    p2 = p2,
+                    punisherResult = punisherResult,
+                    onMoveSelected = { move -> onFindPunishers(move.id, p1, p2) }
+                )
             }
         }
     }
@@ -87,7 +97,7 @@ fun VersusHeader(p1: Character, p2: Character) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         CharacterHeaderItem(p1, Alignment.Start)
-        Text("VS", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.vs_label), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         CharacterHeaderItem(p2, Alignment.End)
     }
 }
@@ -116,6 +126,10 @@ fun CharacterHeaderItem(character: Character, alignment: Alignment.Horizontal) {
 
 @Composable
 fun StatsComparisonView(p1: Character, p2: Character, statsDiff: Map<String, Int>) {
+    // Remember locale to avoid recalculation on every recomposition
+    val locale = remember { java.util.Locale.getDefault() }
+    val unknownText = stringResource(R.string.unknown)
+    
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -132,27 +146,33 @@ fun StatsComparisonView(p1: Character, p2: Character, statsDiff: Map<String, Int
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column {
                             Text(p1.name, style = MaterialTheme.typography.labelMedium)
-                            Text("Weak to: ${p1.weakSide ?: "Unknown"}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.weak_to, p1.weakSide ?: unknownText), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(p2.name, style = MaterialTheme.typography.labelMedium)
-                            Text("Weak to: ${p2.weakSide ?: "Unknown"}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.weak_to, p2.weakSide ?: unknownText), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
 
-        items(statsDiff.toList()) { (stat, diff) ->
-            StatRow(stat, p1.stats[stat] ?: 0, p2.stats[stat] ?: 0)
+        items(statsDiff.toList()) { (stat, _) ->
+            StatRow(stat, p1.stats[stat] ?: 0, p2.stats[stat] ?: 0, locale)
         }
     }
 }
 
 @Composable
-fun StatRow(statName: String, val1: Int, val2: Int) {
+fun StatRow(statName: String, val1: Int, val2: Int, locale: java.util.Locale) {
+    val displayName = remember(statName) {
+        statName.replace("_", " ").replaceFirstChar { 
+            if (it.isLowerCase()) it.titlecase(locale) else it.toString() 
+        }
+    }
+    
     Column {
-        Text(statName.replace("_", " ").replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }, style = MaterialTheme.typography.labelMedium)
+        Text(displayName, style = MaterialTheme.typography.labelMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -165,8 +185,8 @@ fun StatRow(statName: String, val1: Int, val2: Int) {
                 val total = (val1 + val2).coerceAtLeast(1).toFloat()
                 val p1Weight = val1 / total
                 
-                Box(modifier = Modifier.fillMaxHeight().weight(p1Weight).background(MaterialTheme.colorScheme.primary))
-                Box(modifier = Modifier.fillMaxHeight().weight(1f - p1Weight).background(MaterialTheme.colorScheme.secondary))
+                Box(modifier = Modifier.fillMaxHeight().weight(p1Weight.coerceAtLeast(0.01f)).background(MaterialTheme.colorScheme.primary))
+                Box(modifier = Modifier.fillMaxHeight().weight((1f - p1Weight).coerceAtLeast(0.01f)).background(MaterialTheme.colorScheme.secondary))
             }
             
             Spacer(modifier = Modifier.width(8.dp))
@@ -176,15 +196,20 @@ fun StatRow(statName: String, val1: Int, val2: Int) {
 }
 
 @Composable
-fun PunisherToolView(p1: Character, p2: Character, viewModel: VersusViewModel) {
+fun PunisherToolView(
+    p1: Character,
+    p2: Character,
+    punisherResult: VersusViewModel.PunisherResult?,
+    onMoveSelected: (Move) -> Unit
+) {
     var selectedMove by remember { mutableStateOf<Move?>(null) }
-    var punishers by remember { mutableStateOf<List<Move>>(emptyList()) }
+    val selectMoveText = stringResource(R.string.select_move)
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Select a move from ${p1.name} to see how ${p2.name} can punish it.", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.select_move_instruction, p1.name, p2.name), style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Move Selector (Simplified dropdown/list)
+        // Move Selector
         var expanded by remember { mutableStateOf(false) }
         
         @OptIn(ExperimentalMaterial3Api::class)
@@ -193,7 +218,7 @@ fun PunisherToolView(p1: Character, p2: Character, viewModel: VersusViewModel) {
             onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
-                value = selectedMove?.command ?: "Select Move",
+                value = selectedMove?.command ?: selectMoveText,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -209,7 +234,7 @@ fun PunisherToolView(p1: Character, p2: Character, viewModel: VersusViewModel) {
                         onClick = {
                             selectedMove = move
                             expanded = false
-                            punishers = viewModel.findPunishers(move.id, p1, p2)
+                            onMoveSelected(move)
                         }
                     )
                 }
@@ -218,28 +243,28 @@ fun PunisherToolView(p1: Character, p2: Character, viewModel: VersusViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (selectedMove != null) {
-            val frameData = p1.frameData[selectedMove!!.id]
-            val onBlock = frameData?.onBlock
+        if (selectedMove != null && punisherResult != null) {
+            val onBlock = punisherResult.onBlock
+            val unknownFrameText = stringResource(R.string.on_block_unknown)
             
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Move: ${selectedMove!!.command}", fontWeight = FontWeight.Bold)
-                    Text("On Block: ${onBlock ?: "?"}")
+                    Text(stringResource(R.string.move_label, selectedMove!!.command), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.on_block_label, onBlock?.toString() ?: unknownFrameText))
                     if (onBlock != null && onBlock >= 0) {
-                        Text("SAFE! Cannot be punished.", color = Color.Green)
+                        Text(stringResource(R.string.safe_cannot_punish), color = SafeGreen)
                     } else if (onBlock != null) {
-                        Text("Punishable by ${-onBlock} frames or faster.", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.punishable_by_frames, -onBlock), color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            Text("Punishers:", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.punishers_label), style = MaterialTheme.typography.titleMedium)
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(punishers) { punisher ->
-                    PunisherCard(punisher, p2)
+                items(punisherResult.punishers, key = { it.id }) { punisher ->
+                    PunisherCard(punisher, punisherResult.defender)
                 }
             }
         }
@@ -249,6 +274,7 @@ fun PunisherToolView(p1: Character, p2: Character, viewModel: VersusViewModel) {
 @Composable
 fun PunisherCard(move: Move, character: Character) {
     val frameData = character.frameData[move.id]
+    val unknownText = stringResource(R.string.on_block_unknown)
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -259,8 +285,8 @@ fun PunisherCard(move: Move, character: Character) {
                 Text(move.name, style = MaterialTheme.typography.bodySmall)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("i${frameData?.startup ?: "?"}", color = MaterialTheme.colorScheme.primary)
-                Text("Dmg: ${move.damage ?: "?"}")
+                Text("i${frameData?.startup ?: unknownText}", color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.damage_short, move.damage ?: unknownText))
             }
         }
     }

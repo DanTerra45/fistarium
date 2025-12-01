@@ -1,5 +1,6 @@
 package wiki.tk.fistarium.features.settings.presentation
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.core.os.LocaleListCompat
 import org.koin.androidx.compose.koinViewModel
 import wiki.tk.fistarium.BuildConfig
 import wiki.tk.fistarium.R
@@ -21,7 +22,8 @@ import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    navController: NavController,
+    onBack: () -> Unit,
+    onAccountDeleted: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
 ) {
@@ -38,7 +40,7 @@ fun SettingsScreen(
                 TopAppBar(
                     title = { Text(stringResource(R.string.settings_title), color = MaterialTheme.colorScheme.onBackground) },
                     navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
+                        IconButton(onClick = onBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.back),
@@ -57,6 +59,7 @@ fun SettingsScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .padding(paddingValues)
+                    .navigationBarsPadding()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -151,6 +154,9 @@ fun SettingsScreen(
                                         onClick = {
                                             viewModel.setAppLanguage(code)
                                             expanded = false
+                                            // Apply language - AppCompatDelegate handles activity recreation
+                                            val appLocale = LocaleListCompat.forLanguageTags(code)
+                                            AppCompatDelegate.setApplicationLocales(appLocale)
                                         }
                                     )
                                 }
@@ -168,25 +174,23 @@ fun SettingsScreen(
                 if (showDeleteDialog) {
                     AlertDialog(
                         onDismissRequest = { showDeleteDialog = false },
-                        title = { Text("Delete Account") },
-                        text = { Text("Are you sure you want to delete your account? This action cannot be undone and all your data will be lost.") },
+                        title = { Text(stringResource(R.string.delete_account_title)) },
+                        text = { Text(stringResource(R.string.delete_account_confirmation)) },
                         confirmButton = {
                             TextButton(
                                 onClick = {
                                     showDeleteDialog = false
                                     authViewModel.deleteAccount()
-                                    navController.navigate("welcome") {
-                                        popUpTo(0) { inclusive = true }
-                                    }
+                                    onAccountDeleted()
                                 },
                                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                             ) {
-                                Text("Delete")
+                                Text(stringResource(R.string.delete))
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showDeleteDialog = false }) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.cancel))
                             }
                         }
                     )
@@ -200,7 +204,7 @@ fun SettingsScreen(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Delete Account")
+                    Text(stringResource(R.string.delete_account_button))
                 }
             }
         }

@@ -189,6 +189,18 @@
     <string name="weakness_analysis">Análisis de debilidades</string>
     <string name="player_1">Jugador 1</string>
     <string name="player_2">Jugador 2</string>
+    <string name="vs_label">VS</string>
+    <string name="weak_to">Débil a: %1$s</string>
+    <string name="unknown">Desconocido</string>
+    <string name="select_move">Seleccionar movimiento</string>
+    <string name="select_move_instruction">Selecciona un movimiento de %1$s para ver cómo %2$s puede castigarlo.</string>
+    <string name="move_label">Movimiento: %1$s</string>
+    <string name="on_block_label">Al bloquear: %1$s</string>
+    <string name="on_block_unknown">?</string>
+    <string name="safe_cannot_punish">¡SEGURO! No se puede castigar.</string>
+    <string name="punishable_by_frames">Castigable con %1$d frames o menos.</string>
+    <string name="punishers_label">Castigos:</string>
+    <string name="damage_short">Daño: %1$s</string>
     
     <!-- Extra -->
     <string name="offline_reconnecting">Sin conexión - Reconectando...</string>
@@ -196,4 +208,24 @@
     <string name="connect_to_load">Conecta a internet para cargar personajes</string>
     <string name="image_url">URL de imagen</string>
     <string name="select_games">Seleccionar juegos</string>
+    
+    <!-- Delete Account -->
+    <string name="delete_account_title">Eliminar cuenta</string>
+    <string name="delete_account_confirmation">¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y todos tus datos se perderán.</string>
+    <string name="delete_account_button">Eliminar cuenta</string>
+    
+    <!-- History Screen -->
+    <string name="history_title">Historia</string>
+    <string name="history_coming_soon">Próximamente: Historia y Lore de Tekken</string>
+    
+    <!-- Update -->
+    <string name="update_required_title">Actualización requerida</string>
+    <string name="update_required_message">Hay una nueva versión disponible. Por favor actualiza para continuar.</string>
+    <string name="update_button">Actualizar</string>
+    
+    <!-- Frame Data Labels -->
+    <string name="frame_startup">Inicio</string>
+    <string name="frame_block">Bloq</string>
+    <string name="frame_hit">Golpe</string>
+    <string name="frame_counter_hit">CH</string>
 </resources>

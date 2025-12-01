@@ -3,7 +3,12 @@ package wiki.tk.fistarium.features.characters.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import wiki.tk.fistarium.core.config.RemoteConfigManager
 import wiki.tk.fistarium.core.utils.NetworkMonitor
@@ -16,70 +21,90 @@ class CharacterViewModel(
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
-    private val _characters = MutableStateFlow<List<Character>>(emptyList())
-    val characters: StateFlow<List<Character>> = _characters
+    // Consolidated state - single source of truth
+    private val _state = MutableStateFlow(CharactersState())
+    val state: StateFlow<CharactersState> = _state.asStateFlow()
 
-    private val _selectedGameId = MutableStateFlow<String>("TK8")
-    val selectedGameId: StateFlow<String> = _selectedGameId
+    // Feature flags state (reactive)
+    private val _featureFlags = MutableStateFlow(FeatureFlags())
+    val featureFlags: StateFlow<FeatureFlags> = _featureFlags.asStateFlow()
 
-    private val _filteredCharacters = MutableStateFlow<List<Character>>(emptyList())
-    val filteredCharacters: StateFlow<List<Character>> = _filteredCharacters
+    // Backward compatibility accessors - derived StateFlows that ARE reactive
+    val characters: StateFlow<List<Character>> = _state
+        .map { it.characters }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    
+    val selectedGameId: StateFlow<String> = _state
+        .map { it.selectedGameId }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "TK8")
+    
+    val filteredCharacters: StateFlow<List<Character>> = _state
+        .map { it.filteredCharacters }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    
+    val favoriteCharacters: StateFlow<List<Character>> = _state
+        .map { it.favorites }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    
+    val searchResults: StateFlow<List<Character>> = _state
+        .map { it.searchResults }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    
+    val selectedCharacter: StateFlow<Character?> = _state
+        .map { it.selectedCharacter }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    
+    val syncState: StateFlow<SyncState> = _state
+        .map { it.syncState }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SyncState.Idle)
+    
+    val isOnline: StateFlow<Boolean> = _state
+        .map { it.isOnline }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    
+    val uiState: StateFlow<UiState> = _state
+        .map { it.uiState }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Idle)
 
-    private val _favoriteCharacters = MutableStateFlow<List<Character>>(emptyList())
-    val favoriteCharacters: StateFlow<List<Character>> = _favoriteCharacters
-
-    private val _searchResults = MutableStateFlow<List<Character>>(emptyList())
-    val searchResults: StateFlow<List<Character>> = _searchResults
-
-    private val _selectedCharacter = MutableStateFlow<Character?>(null)
-    val selectedCharacter: StateFlow<Character?> = _selectedCharacter
-
-    private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
-    val syncState: StateFlow<SyncState> = _syncState
-
-    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
-    val uiState: StateFlow<UiState> = _uiState
-
-    private val _isOnline = MutableStateFlow(false)
-    val isOnline: StateFlow<Boolean> = _isOnline
-
-    // Feature flags from Remote Config
-    val isEditingEnabled: Boolean get() = remoteConfigManager.isCharacterEditingEnabled()
-    val isTranslationsEnabled: Boolean get() = remoteConfigManager.isTranslationsEnabled()
-    val maxImageSizeMB: Long get() = remoteConfigManager.getMaxImageSizeMB()
+    // Legacy getters for feature flags
+    val isEditingEnabled: Boolean get() = _featureFlags.value.isEditingEnabled
+    val isTranslationsEnabled: Boolean get() = _featureFlags.value.isTranslationsEnabled
+    val maxImageSizeMB: Long get() = _featureFlags.value.maxImageSizeMB
 
     init {
-        loadCharacters()
-        loadFavorites()
+        observeCharacters()
+        observeFavorites()
         observeConnectivity()
         fetchRemoteConfig()
-        
-        // Combine characters and selectedGameId to produce filteredCharacters
-        viewModelScope.launch {
-            kotlinx.coroutines.flow.combine(_characters, _selectedGameId) { chars, gameId ->
-                chars.filter { char -> char.games.contains(gameId) }
-            }.collect { filtered ->
-                _filteredCharacters.value = filtered
-            }
-        }
+        // Sync happens automatically when connectivity is observed
     }
 
-    private fun loadCharacters() {
+    private fun observeCharacters() {
         viewModelScope.launch {
             characterUseCase.getCharacters().collect { chars ->
-                _characters.value = chars
+                _state.update { current ->
+                    current.copy(
+                        characters = chars,
+                        filteredCharacters = chars.filter { it.games.contains(current.selectedGameId) }
+                    )
+                }
             }
         }
     }
 
     fun filterByGame(gameId: String) {
-        _selectedGameId.value = gameId
+        _state.update { current ->
+            current.copy(
+                selectedGameId = gameId,
+                filteredCharacters = current.characters.filter { it.games.contains(gameId) }
+            )
+        }
     }
 
-    private fun loadFavorites() {
+    private fun observeFavorites() {
         viewModelScope.launch {
             characterUseCase.getFavoriteCharacters().collect { favs ->
-                _favoriteCharacters.value = favs
+                _state.update { it.copy(favorites = favs) }
             }
         }
     }
@@ -87,9 +112,8 @@ class CharacterViewModel(
     private fun observeConnectivity() {
         viewModelScope.launch {
             networkMonitor.observeConnectivity().collect { isConnected ->
-                _isOnline.value = isConnected
+                _state.update { it.copy(isOnline = isConnected) }
                 if (isConnected) {
-                    // Auto-sync when coming online
                     syncCharacters()
                 }
             }
@@ -99,54 +123,59 @@ class CharacterViewModel(
     private fun fetchRemoteConfig() {
         viewModelScope.launch {
             remoteConfigManager.fetchAndActivate()
+            _featureFlags.update {
+                FeatureFlags(
+                    isEditingEnabled = remoteConfigManager.isCharacterEditingEnabled(),
+                    isTranslationsEnabled = remoteConfigManager.isTranslationsEnabled(),
+                    maxImageSizeMB = remoteConfigManager.getMaxImageSizeMB()
+                )
+            }
         }
     }
 
     fun getCharacterById(id: String) {
         viewModelScope.launch {
             characterUseCase.getCharacterById(id).collect { char ->
-                _selectedCharacter.value = char
+                _state.update { it.copy(selectedCharacter = char) }
             }
         }
     }
 
     fun syncCharacters() {
         viewModelScope.launch {
-            if (!_isOnline.value) {
-                // Don't show error for offline, just return
-                return@launch
-            }
+            if (!_state.value.isOnline) return@launch
             
-            _syncState.value = SyncState.Loading
+            _state.update { it.copy(syncState = SyncState.Loading) }
+            
             val result = characterUseCase.syncCharacters()
-            _syncState.value = if (result.isSuccess) {
+            val newSyncState = if (result.isSuccess) {
                 SyncState.Success
             } else {
-                val error = result.exceptionOrNull()
-                val message = error?.message ?: "Sync failed"
-                // Suppress PERMISSION_DENIED error for guest users or initial sync
-                if (message.contains("PERMISSION_DENIED")) {
-                    SyncState.Idle
-                } else {
-                    SyncState.Error(message)
-                }
+                val message = result.exceptionOrNull()?.message ?: "Sync failed"
+                if (message.contains("PERMISSION_DENIED")) SyncState.Idle
+                else SyncState.Error(message)
             }
+            
+            _state.update { it.copy(syncState = newSyncState) }
         }
     }
 
     fun searchCharacters(query: String) {
         if (query.isBlank()) {
-            _searchResults.value = emptyList()
+            _state.update { it.copy(searchResults = emptyList()) }
             return
         }
         
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            _state.update { it.copy(uiState = UiState.Loading) }
             val results = characterUseCase.searchCharacters(query)
-            // Filter results by the currently selected game
-            val currentGameId = _selectedGameId.value
-            _searchResults.value = results.filter { it.games.contains(currentGameId) }
-            _uiState.value = UiState.Success
+            val currentGameId = _state.value.selectedGameId
+            _state.update { 
+                it.copy(
+                    searchResults = results.filter { char -> char.games.contains(currentGameId) },
+                    uiState = UiState.Success
+                )
+            }
         }
     }
 
@@ -154,79 +183,105 @@ class CharacterViewModel(
         viewModelScope.launch {
             val result = characterUseCase.toggleFavorite(characterId, isFavorite)
             if (result.isFailure) {
-                _uiState.value = UiState.Error("Failed to update favorite")
+                _state.update { it.copy(uiState = UiState.Error("Failed to update favorite")) }
             }
         }
     }
 
     fun createCharacter(character: Character, userId: String) {
-        if (!isEditingEnabled) {
-            _uiState.value = UiState.Error("Character editing is currently disabled")
+        if (!_featureFlags.value.isEditingEnabled) {
+            _state.update { it.copy(uiState = UiState.Error("Character editing is currently disabled")) }
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            _state.update { it.copy(uiState = UiState.Loading) }
             val result = characterUseCase.createCharacter(character, userId)
-            _uiState.value = if (result.isSuccess) {
-                UiState.CharacterCreated(result.getOrNull() ?: "")
-            } else {
-                UiState.Error(result.exceptionOrNull()?.message ?: "Failed to create character")
+            _state.update { 
+                it.copy(uiState = if (result.isSuccess) {
+                    UiState.CharacterCreated(result.getOrNull() ?: "")
+                } else {
+                    UiState.Error(result.exceptionOrNull()?.message ?: "Failed to create character")
+                })
             }
         }
     }
 
     fun updateCharacter(character: Character, userId: String) {
-        if (!isEditingEnabled) {
-            _uiState.value = UiState.Error("Character editing is currently disabled")
+        if (!_featureFlags.value.isEditingEnabled) {
+            _state.update { it.copy(uiState = UiState.Error("Character editing is currently disabled")) }
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            _state.update { it.copy(uiState = UiState.Loading) }
             val result = characterUseCase.updateCharacter(character, userId)
-            _uiState.value = if (result.isSuccess) {
-                UiState.CharacterUpdated
-            } else {
-                UiState.Error(result.exceptionOrNull()?.message ?: "Failed to update character")
+            _state.update { 
+                it.copy(uiState = if (result.isSuccess) {
+                    UiState.CharacterUpdated
+                } else {
+                    UiState.Error(result.exceptionOrNull()?.message ?: "Failed to update character")
+                })
             }
         }
     }
 
     fun deleteCharacter(characterId: String) {
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            _state.update { it.copy(uiState = UiState.Loading) }
             val result = characterUseCase.deleteCharacter(characterId)
-            _uiState.value = if (result.isSuccess) {
-                UiState.CharacterDeleted
-            } else {
-                UiState.Error(result.exceptionOrNull()?.message ?: "Failed to delete character")
+            _state.update { 
+                it.copy(uiState = if (result.isSuccess) {
+                    UiState.CharacterDeleted
+                } else {
+                    UiState.Error(result.exceptionOrNull()?.message ?: "Failed to delete character")
+                })
             }
         }
     }
 
     fun clearUiState() {
-        _uiState.value = UiState.Idle
+        _state.update { it.copy(uiState = UiState.Idle) }
     }
 
     fun resetSyncState() {
-        _syncState.value = SyncState.Idle
+        _state.update { it.copy(syncState = SyncState.Idle) }
     }
 
+    // Consolidated state data class - single source of truth
+    data class CharactersState(
+        val characters: List<Character> = emptyList(),
+        val filteredCharacters: List<Character> = emptyList(),
+        val favorites: List<Character> = emptyList(),
+        val searchResults: List<Character> = emptyList(),
+        val selectedCharacter: Character? = null,
+        val selectedGameId: String = "TK8",
+        val syncState: SyncState = SyncState.Idle,
+        val uiState: UiState = UiState.Idle,
+        val isOnline: Boolean = false
+    )
+
+    // Feature flags data class
+    data class FeatureFlags(
+        val isEditingEnabled: Boolean = false,
+        val isTranslationsEnabled: Boolean = false,
+        val maxImageSizeMB: Long = 5L
+    )
+
     sealed class SyncState {
-        object Idle : SyncState()
-        object Loading : SyncState()
-        object Success : SyncState()
+        data object Idle : SyncState()
+        data object Loading : SyncState()
+        data object Success : SyncState()
         data class Error(val message: String) : SyncState()
     }
 
     sealed class UiState {
-        object Idle : UiState()
-        object Loading : UiState()
-        object Success : UiState()
+        data object Idle : UiState()
+        data object Loading : UiState()
+        data object Success : UiState()
         data class CharacterCreated(val id: String) : UiState()
-        object CharacterUpdated : UiState()
-        object CharacterDeleted : UiState()
+        data object CharacterUpdated : UiState()
+        data object CharacterDeleted : UiState()
         data class Error(val message: String) : UiState()
     }
 }

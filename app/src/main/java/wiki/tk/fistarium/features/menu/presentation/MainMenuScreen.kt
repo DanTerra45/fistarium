@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -46,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
+import wiki.tk.fistarium.ui.theme.MenuCardCharacters
+import wiki.tk.fistarium.ui.theme.MenuCardVersus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +98,7 @@ fun MainMenuScreen(
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
+                            contentDescription = stringResource(R.string.nav_settings),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -128,6 +131,7 @@ fun MainMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .navigationBarsPadding()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -163,7 +167,7 @@ fun MainMenuScreen(
                     title = stringResource(R.string.menu_characters_title),
                     subtitle = stringResource(R.string.menu_characters_subtitle),
                     icon = Icons.Default.SportsMma,
-                    color = Color(0xFF3F51B5), // Indigo
+                    color = MenuCardCharacters,
                     onClick = onNavigateToCharacters
                 )
 
@@ -181,7 +185,7 @@ fun MainMenuScreen(
                     title = stringResource(R.string.menu_versus_title),
                     subtitle = stringResource(R.string.menu_versus_subtitle),
                     icon = Icons.Default.SportsKabaddi,
-                    color = Color(0xFFD32F2F), // Red
+                    color = MenuCardVersus,
                     onClick = onNavigateToVersus
                 )
             }

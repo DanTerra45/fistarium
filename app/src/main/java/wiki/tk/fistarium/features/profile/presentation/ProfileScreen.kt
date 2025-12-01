@@ -31,11 +31,14 @@ fun ProfileScreen(
 ) {
     val authState by authViewModel.authState.collectAsState()
     val userRole by authViewModel.userRole.collectAsState()
+    val userInfo by authViewModel.userInfo.collectAsState()
     val favoriteCharacters by characterViewModel.favoriteCharacters.collectAsState()
-    val userId = authViewModel.getCurrentUserId()
-    val userEmail = authViewModel.getUserEmail()
-    val userDisplayName = authViewModel.getUserDisplayName()
-    val userCreationTimestamp = authViewModel.getUserCreationTimestamp()
+    
+    // Use reactive userInfo StateFlow instead of synchronous getters
+    val userId = userInfo.userId
+    val userEmail = userInfo.email
+    val userDisplayName = userInfo.displayName
+    val userCreationTimestamp = userInfo.creationTimestamp
     val isGuest = authState is AuthViewModel.AuthState.Guest
 
     var showEditDialog by remember { mutableStateOf(false) }
@@ -84,11 +87,17 @@ fun ProfileScreen(
             )
         }
     ) { padding ->
+        val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 16.dp + navBarPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // User Info Section
@@ -179,6 +188,15 @@ fun ProfileScreen(
                             
                             Spacer(modifier = Modifier.height(8.dp))
                             
+                            // Remember date formatter to avoid recreation on every recomposition
+                            val dateFormatter = remember {
+                                java.text.SimpleDateFormat("MMM yyyy", java.util.Locale.getDefault())
+                            }
+                            val unknownText = stringResource(R.string.unknown)
+                            val formattedDate = remember(userCreationTimestamp) {
+                                userCreationTimestamp?.let { dateFormatter.format(java.util.Date(it)) } ?: unknownText
+                            }
+                            
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -190,9 +208,7 @@ fun ProfileScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
-                                        text = userCreationTimestamp?.let { 
-                                            java.text.SimpleDateFormat("MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(it)) 
-                                        } ?: "Unknown",
+                                        text = formattedDate,
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold
                                     )

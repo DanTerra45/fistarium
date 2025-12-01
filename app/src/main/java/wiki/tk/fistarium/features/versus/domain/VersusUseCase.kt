@@ -5,6 +5,11 @@ import wiki.tk.fistarium.features.characters.domain.Move
 
 class VersusUseCase {
 
+    companion object {
+        // Pre-computed regex for damage parsing (LOW priority optimization)
+        private val DAMAGE_NUMBER_REGEX = Regex("[^0-9]")
+    }
+
     fun compareStats(stats1: Map<String, Int>, stats2: Map<String, Int>): Map<String, Int> {
         val allKeys = stats1.keys + stats2.keys
         return allKeys.associateWith { key ->
@@ -24,7 +29,7 @@ class VersusUseCase {
             val startup = moveFrameData?.startup
             startup != null && startup <= punishFrames
         }.sortedByDescending { 
-            it.damage?.replace(Regex("[^0-9]"), "")?.toIntOrNull() ?: 0 
+            it.damage?.replace(DAMAGE_NUMBER_REGEX, "")?.toIntOrNull() ?: 0 
         }
     }
 }
