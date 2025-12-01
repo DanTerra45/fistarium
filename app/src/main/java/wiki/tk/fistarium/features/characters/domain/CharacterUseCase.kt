@@ -1,8 +1,15 @@
 package wiki.tk.fistarium.features.characters.domain
 
 import kotlinx.coroutines.flow.Flow
+import java.util.UUID
 
 class CharacterUseCase(private val characterRepository: CharacterRepository) {
+
+    /**
+     * Generate a unique ID for a new character.
+     * ID generation belongs in the domain layer, not in the UI.
+     */
+    fun generateCharacterId(): String = UUID.randomUUID().toString()
 
     fun getCharacters(): Flow<List<Character>> {
         return characterRepository.getCharacters()

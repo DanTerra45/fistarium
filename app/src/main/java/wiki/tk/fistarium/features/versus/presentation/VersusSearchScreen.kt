@@ -28,13 +28,16 @@ import wiki.tk.fistarium.features.characters.domain.Character
 fun VersusSearchScreen(
     onBack: () -> Unit,
     onCompare: () -> Unit,
-    viewModel: VersusViewModel
+    // State
+    allCharacters: List<Character>,
+    player1: Character?,
+    player2: Character?,
+    // Events
+    onSelectPlayer1: (Character) -> Unit,
+    onSelectPlayer2: (Character) -> Unit
 ) {
-    val allCharacters by viewModel.allCharacters.collectAsState()
-    val player1 by viewModel.player1.collectAsState()
-    val player2 by viewModel.player2.collectAsState()
-
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.versus_mode)) },
@@ -51,6 +54,7 @@ fun VersusSearchScreen(
                     onClick = onCompare,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(16.dp)
                         .height(56.dp)
                 ) {
@@ -73,14 +77,12 @@ fun VersusSearchScreen(
             ) {
                 CharacterSlot(
                     character = player1,
-                    label = "Player 1",
-                    isSelected = player1 == null, // Highlight if waiting for selection
-                    onClick = { /* Maybe allow re-selecting specifically P1? For now auto-fill */ },
-                    onClear = { viewModel.selectPlayer1(it) } // Hack: passing dummy to clear? No, need clear method
+                    label = stringResource(R.string.player_1),
+                    isSelected = player1 == null
                 )
                 
                 Text(
-                    "VS",
+                    stringResource(R.string.vs_label),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.CenterVertically)
@@ -88,10 +90,8 @@ fun VersusSearchScreen(
 
                 CharacterSlot(
                     character = player2,
-                    label = "Player 2",
-                    isSelected = player1 != null && player2 == null,
-                    onClick = { },
-                    onClear = { }
+                    label = stringResource(R.string.player_2),
+                    isSelected = player1 != null && player2 == null
                 )
             }
 
@@ -103,14 +103,14 @@ fun VersusSearchScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(allCharacters) { char ->
+                items(allCharacters, key = { it.id }) { char ->
                     CharacterListItem(
                         character = char,
                         onClick = {
                             if (player1 == null) {
-                                viewModel.selectPlayer1(char)
+                                onSelectPlayer1(char)
                             } else if (player2 == null) {
-                                viewModel.selectPlayer2(char)
+                                onSelectPlayer2(char)
                             }
                         }
                     )
@@ -124,9 +124,7 @@ fun VersusSearchScreen(
 fun CharacterSlot(
     character: Character?,
     label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onClear: (Character) -> Unit // Not used properly yet
+    isSelected: Boolean
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -138,8 +136,7 @@ fun CharacterSlot(
                     width = if (isSelected) 3.dp else 1.dp,
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                     shape = CircleShape
-                )
-                .clickable(onClick = onClick),
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (character != null) {

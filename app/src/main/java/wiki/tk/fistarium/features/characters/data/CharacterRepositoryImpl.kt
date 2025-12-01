@@ -2,6 +2,7 @@ package wiki.tk.fistarium.features.characters.data
 
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.first
+import wiki.tk.fistarium.core.utils.RetryUtils
 import wiki.tk.fistarium.features.characters.data.local.CharacterLocalDataSource
 import wiki.tk.fistarium.features.characters.data.remote.CharacterRemoteDataSource
 import wiki.tk.fistarium.features.characters.domain.Character
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 class CharacterRepositoryImpl(
     private val localDataSource: CharacterLocalDataSource,
     private val remoteDataSource: CharacterRemoteDataSource,
-    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val firebaseAuth: FirebaseAuth
 ) : CharacterRepository {
 
     override fun getCharacters(): Flow<List<Character>> {
@@ -31,62 +32,72 @@ class CharacterRepositoryImpl(
     }
 
     override suspend fun syncCharactersFromRemote(): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             val remoteCharacters = remoteDataSource.fetchCharacters().getOrThrow()
             localDataSource.saveCharacters(remoteCharacters)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun createCharacter(character: Character): Result<String> {
+        // Always save locally first (offline-first)
+        localDataSource.saveCharacter(character)
+        
         return try {
-            // Save to remote first
-            remoteDataSource.saveCharacter(character).getOrThrow()
-            // Then save to local
-            localDataSource.saveCharacter(character)
+            RetryUtils.withRetry {
+                remoteDataSource.saveCharacter(character).getOrThrow()
+            }
             Result.success(character.id)
         } catch (e: Exception) {
-            // If remote fails, still save locally
-            localDataSource.saveCharacter(character)
-            Result.failure(e)
+            // Local save succeeded, remote failed - return success
+            // Character will sync later when online
+            Result.success(character.id)
         }
     }
 
     override suspend fun updateCharacter(character: Character): Result<Unit> {
+        // Always update locally first (offline-first)
+        localDataSource.saveCharacter(character)
+        
         return try {
-            // Update remote first
-            remoteDataSource.updateCharacter(character).getOrThrow()
-            // Then update local
-            localDataSource.saveCharacter(character)
+            RetryUtils.withRetry {
+                remoteDataSource.updateCharacter(character).getOrThrow()
+            }
             Result.success(Unit)
         } catch (e: Exception) {
-            // If remote fails, still update locally
-            localDataSource.saveCharacter(character)
-            Result.failure(e)
+            // Local update succeeded, remote failed
+            Result.success(Unit)
         }
     }
 
     override suspend fun deleteCharacter(characterId: String): Result<Unit> {
+        // Delete locally first (offline-first consistency)
+        localDataSource.deleteCharacter(characterId)
+        
         return try {
-            // Delete from remote first
-            remoteDataSource.deleteCharacter(characterId).getOrThrow()
-            // Then delete from local
-            localDataSource.deleteCharacter(characterId)
+            RetryUtils.withRetry {
+                remoteDataSource.deleteCharacter(characterId).getOrThrow()
+            }
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.success(Unit)
         }
     }
 
     override suspend fun toggleFavorite(characterId: String, isFavorite: Boolean): Result<Unit> {
         return try {
+            // Update locally first
             localDataSource.updateFavoriteStatus(characterId, isFavorite)
             
+            // Then try remote with retry
             val userId = firebaseAuth.currentUser?.uid
             if (userId != null) {
-                remoteDataSource.updateUserFavorite(userId, characterId, isFavorite)
+                try {
+                    RetryUtils.withRetry(times = 2) {
+                        remoteDataSource.updateUserFavorite(userId, characterId, isFavorite)
+                    }
+                } catch (e: Exception) {
+                    // Remote failed but local succeeded - acceptable for favorites
+                }
             }
             
             Result.success(Unit)
@@ -105,7 +116,7 @@ class CharacterRepositoryImpl(
     }
 
     override suspend fun syncUserFavorites(userId: String): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             // 1. Get local favorites (Guest favorites)
             val localFavorites = localDataSource.getFavoriteCharacters().first().map { it.id }
             
@@ -118,17 +129,17 @@ class CharacterRepositoryImpl(
             // 4. Update Remote (Push local favorites to account)
             val missingInRemote = localFavorites - remoteFavorites.toSet()
             missingInRemote.forEach { id ->
-                remoteDataSource.updateUserFavorite(userId, id, true)
+                try {
+                    remoteDataSource.updateUserFavorite(userId, id, true)
+                } catch (e: Exception) {
+                    // Continue with others even if one fails
+                }
             }
             
             // 5. Update Local (Pull remote favorites to device)
             allFavorites.forEach { characterId ->
                 localDataSource.updateFavoriteStatus(characterId, true)
             }
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 }

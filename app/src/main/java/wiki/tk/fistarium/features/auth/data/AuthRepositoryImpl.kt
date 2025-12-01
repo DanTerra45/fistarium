@@ -4,24 +4,22 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import wiki.tk.fistarium.core.utils.RetryUtils
 import wiki.tk.fistarium.features.auth.domain.AuthRepository
 
 class AuthRepositoryImpl(
-    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firebaseAuth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
 ) : AuthRepository {
 
     override suspend fun signIn(email: String, password: String): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun signUp(email: String, password: String): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val user = authResult.user
             if (user != null) {
@@ -34,18 +32,12 @@ class AuthRepositoryImpl(
                     .set(userMap, SetOptions.merge())
                     .await()
             }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun signInAnonymously(): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             firebaseAuth.signInAnonymously().await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
@@ -78,35 +70,48 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun getUserRole(): Result<String> {
-        return try {
+        return RetryUtils.withRetryResult {
             val uid = firebaseAuth.currentUser?.uid ?: throw Exception("No user logged in")
             val snapshot = firestore.collection("users").document(uid).get().await()
-            val role = snapshot.getString("role") ?: "user"
-            Result.success(role)
-        } catch (e: Exception) {
-            Result.failure(e)
+            snapshot.getString("role") ?: "user"
         }
     }
 
     override suspend fun updateProfile(displayName: String): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             val user = firebaseAuth.currentUser ?: throw Exception("No user logged in")
             val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
                 .setDisplayName(displayName)
                 .build()
             user.updateProfile(profileUpdates).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
     override suspend fun deleteAccount(): Result<Unit> {
-        return try {
+        return RetryUtils.withRetryResult {
             firebaseAuth.currentUser?.delete()?.await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+                ?: throw Exception("No user logged in")
+        }
+    }
+
+    override suspend fun linkAnonymousAccount(email: String, password: String): Result<Unit> {
+        return RetryUtils.withRetryResult {
+            val user = firebaseAuth.currentUser ?: throw Exception("No user logged in")
+            if (!user.isAnonymous) throw Exception("User is not anonymous")
+            
+            val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(email, password)
+            user.linkWithCredential(credential).await()
+            
+            // Create user document in Firestore
+            val userMap = hashMapOf(
+                "email" to email,
+                "role" to "user",
+                "createdAt" to com.google.firebase.Timestamp.now(),
+                "convertedFromGuest" to true
+            )
+            firestore.collection("users").document(user.uid)
+                .set(userMap, SetOptions.merge())
+                .await()
         }
     }
 }

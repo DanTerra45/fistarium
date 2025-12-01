@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import wiki.tk.fistarium.features.auth.domain.AuthUseCase
 import wiki.tk.fistarium.features.auth.domain.SyncFavoritesUseCase
@@ -14,10 +16,14 @@ class AuthViewModel(
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
-    val authState: StateFlow<AuthState> = _authState
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     private val _userRole = MutableStateFlow("user")
-    val userRole: StateFlow<String> = _userRole
+    val userRole: StateFlow<String> = _userRole.asStateFlow()
+
+    // Reactive user info - avoids synchronous Firebase access on main thread
+    private val _userInfo = MutableStateFlow(UserInfo())
+    val userInfo: StateFlow<UserInfo> = _userInfo.asStateFlow()
 
     init {
         checkIfLoggedIn()
@@ -25,6 +31,7 @@ class AuthViewModel(
 
     private fun checkIfLoggedIn() {
         if (authUseCase.isLoggedIn()) {
+            refreshUserInfo()
             if (authUseCase.isAnonymous()) {
                 _authState.value = AuthState.Guest
             } else {
@@ -34,12 +41,24 @@ class AuthViewModel(
         }
     }
 
+    private fun refreshUserInfo() {
+        _userInfo.update {
+            UserInfo(
+                userId = authUseCase.getCurrentUserId(),
+                email = authUseCase.getUserEmail(),
+                displayName = authUseCase.getUserDisplayName(),
+                creationTimestamp = authUseCase.getUserCreationTimestamp()
+            )
+        }
+    }
+
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             val result = authUseCase.login(email, password)
             if (result.isSuccess) {
-                val userId = authUseCase.getCurrentUserId()
+                refreshUserInfo()
+                val userId = _userInfo.value.userId
                 if (userId != null) {
                     syncFavoritesUseCase.syncUserFavorites(userId)
                     fetchUserRole()
@@ -63,8 +82,27 @@ class AuthViewModel(
     fun register(email: String, password: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            val result = authUseCase.register(email, password)
-            _authState.value = if (result.isSuccess) AuthState.Registered else AuthState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
+            
+            // If user is currently a guest, link the account instead of creating new
+            if (authUseCase.isAnonymous()) {
+                val result = authUseCase.linkAnonymousAccount(email, password)
+                if (result.isSuccess) {
+                    refreshUserInfo()
+                    fetchUserRole()
+                    _authState.value = AuthState.LoggedIn
+                } else {
+                    _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Account linking failed")
+                }
+            } else {
+                // Normal registration for non-guests
+                val result = authUseCase.register(email, password)
+                if (result.isSuccess) {
+                    refreshUserInfo()
+                    _authState.value = AuthState.Registered
+                } else {
+                    _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
+                }
+            }
         }
     }
 
@@ -75,6 +113,7 @@ class AuthViewModel(
             }
             authUseCase.logout()
             syncFavoritesUseCase.clearFavorites()
+            _userInfo.value = UserInfo()
             _authState.value = AuthState.Idle
         }
     }
@@ -83,37 +122,31 @@ class AuthViewModel(
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             val result = authUseCase.signInAnonymously()
-            _authState.value = if (result.isSuccess) AuthState.Guest else AuthState.Error(result.exceptionOrNull()?.message ?: "Guest login failed")
+            if (result.isSuccess) {
+                refreshUserInfo()
+                _authState.value = AuthState.Guest
+            } else {
+                _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Guest login failed")
+            }
         }
     }
 
-    fun getCurrentUserId(): String? {
-        return authUseCase.getCurrentUserId()
-    }
-
-    fun getUserEmail(): String? {
-        return authUseCase.getUserEmail()
-    }
-
-    fun getUserDisplayName(): String? {
-        return authUseCase.getUserDisplayName()
-    }
-
-    fun getUserCreationTimestamp(): Long? {
-        return authUseCase.getUserCreationTimestamp()
-    }
+    // Backward compatibility - delegate to userInfo StateFlow
+    fun getCurrentUserId(): String? = _userInfo.value.userId
+    fun getUserEmail(): String? = _userInfo.value.email
+    fun getUserDisplayName(): String? = _userInfo.value.displayName
+    fun getUserCreationTimestamp(): Long? = _userInfo.value.creationTimestamp
 
     fun updateProfile(displayName: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             val result = authUseCase.updateProfile(displayName)
-            // If successful, we might want to refresh the state or just stay LoggedIn
-            // But we need to trigger a UI update. Since getUserDisplayName() is not a flow,
-            // the UI might not update automatically unless we force it.
-            // For now, let's just set state to LoggedIn (which it already is) but maybe emit a side effect?
-            // Or we can just rely on the fact that the UI will recompose if we change a state variable.
-            // Let's add a ProfileUpdated state or similar if needed, but for now:
-            _authState.value = if (result.isSuccess) AuthState.LoggedIn else AuthState.Error(result.exceptionOrNull()?.message ?: "Update failed")
+            if (result.isSuccess) {
+                refreshUserInfo()
+                _authState.value = AuthState.LoggedIn
+            } else {
+                _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Update failed")
+            }
         }
     }
 
@@ -121,16 +154,29 @@ class AuthViewModel(
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             val result = authUseCase.deleteAccount()
-            _authState.value = if (result.isSuccess) AuthState.Idle else AuthState.Error(result.exceptionOrNull()?.message ?: "Delete account failed")
+            if (result.isSuccess) {
+                _userInfo.value = UserInfo()
+                _authState.value = AuthState.Idle
+            } else {
+                _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Delete account failed")
+            }
         }
     }
 
+    // User info data class
+    data class UserInfo(
+        val userId: String? = null,
+        val email: String? = null,
+        val displayName: String? = null,
+        val creationTimestamp: Long? = null
+    )
+
     sealed class AuthState {
-        object Idle : AuthState()
-        object Loading : AuthState()
-        object LoggedIn : AuthState()
-        object Registered : AuthState()
-        object Guest : AuthState()
+        data object Idle : AuthState()
+        data object Loading : AuthState()
+        data object LoggedIn : AuthState()
+        data object Registered : AuthState()
+        data object Guest : AuthState()
         data class Error(val message: String) : AuthState()
     }
 }

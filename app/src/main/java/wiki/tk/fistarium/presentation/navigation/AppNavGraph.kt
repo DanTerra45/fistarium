@@ -123,7 +123,14 @@ fun AppNavGraph(
         }
 
         composable(NavRoutes.SETTINGS) {
-            SettingsScreen(navController = navController)
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onAccountDeleted = {
+                    navController.navigate(NavRoutes.WELCOME) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(NavRoutes.GAME_SELECTION) {
@@ -210,17 +217,30 @@ fun AppNavGraph(
         }
 
         composable(NavRoutes.VERSUS_SEARCH) {
+            val versusState by versusViewModel.state.collectAsState()
+            
             VersusSearchScreen(
                 onBack = { navController.popBackStack() },
                 onCompare = { navController.navigate(NavRoutes.VERSUS_RESULT) },
-                viewModel = versusViewModel
+                allCharacters = versusState.allCharacters,
+                player1 = versusState.player1,
+                player2 = versusState.player2,
+                onSelectPlayer1 = { versusViewModel.selectPlayer1(it) },
+                onSelectPlayer2 = { versusViewModel.selectPlayer2(it) }
             )
         }
 
         composable(NavRoutes.VERSUS_RESULT) {
+            val versusState by versusViewModel.state.collectAsState()
+            val punisherResult by versusViewModel.punisherResult.collectAsState()
+            
             VersusResultScreen(
                 onBack = { navController.popBackStack() },
-                viewModel = versusViewModel
+                comparisonResult = versusState.comparisonResult,
+                punisherResult = punisherResult,
+                onFindPunishers = { moveId, attacker, defender ->
+                    versusViewModel.findPunishersAsync(moveId, attacker, defender)
+                }
             )
         }
 

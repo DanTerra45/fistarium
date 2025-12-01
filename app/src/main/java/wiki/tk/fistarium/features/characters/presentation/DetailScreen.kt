@@ -25,7 +25,8 @@ fun DetailScreen(
     onToggleFavorite: (String, Boolean) -> Unit = { _, _ -> },
     onEdit: ((String) -> Unit)? = null
 ) {
-    val currentLanguage = java.util.Locale.getDefault().language
+    // Remember locale to avoid recalculation on every recomposition
+    val currentLanguage = remember { java.util.Locale.getDefault().language }
     if (character == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -61,11 +62,17 @@ fun DetailScreen(
             )
         }
     ) { padding ->
+        val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 16.dp + navBarPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Character Image
@@ -222,11 +229,11 @@ fun DetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("Start", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                                        Text(stringResource(R.string.frame_startup), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                                         Text(frameData.startup?.toString() ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("Block", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                                        Text(stringResource(R.string.frame_block), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                                         val blockVal = frameData.onBlock ?: 0
                                         val blockColor = if (blockVal <= -10) 
                                             MaterialTheme.colorScheme.error 
@@ -235,11 +242,11 @@ fun DetailScreen(
                                         Text(frameData.onBlock?.toString() ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = blockColor)
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("Hit", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                                        Text(stringResource(R.string.frame_hit), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                                         Text(frameData.onHit?.toString() ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("CH", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                                        Text(stringResource(R.string.frame_counter_hit), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                                         Text(frameData.onCounterHit?.toString() ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                                     }
                                 }

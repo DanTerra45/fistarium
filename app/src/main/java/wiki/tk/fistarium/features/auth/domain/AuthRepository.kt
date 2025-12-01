@@ -14,4 +14,5 @@ interface AuthRepository {
     suspend fun getUserRole(): Result<String>
     suspend fun updateProfile(displayName: String): Result<Unit>
     suspend fun deleteAccount(): Result<Unit>
+    suspend fun linkAnonymousAccount(email: String, password: String): Result<Unit>
 }

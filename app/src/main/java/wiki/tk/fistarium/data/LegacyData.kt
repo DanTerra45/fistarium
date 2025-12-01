@@ -2,7 +2,6 @@
 
 import wiki.tk.fistarium.features.characters.domain.Character
 
-
 val tekken1Characters = listOf(
     // Kazuya Mishima
     Character(games = listOf("TK1"), 

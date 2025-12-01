@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import wiki.tk.fistarium.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,10 +20,10 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Historia") },
+                title = { Text(stringResource(R.string.history_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -33,7 +35,7 @@ fun HistoryScreen(
                 .padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            Text("Coming Soon: Tekken History & Lore")
+            Text(stringResource(R.string.history_coming_soon))
         }
     }
 }

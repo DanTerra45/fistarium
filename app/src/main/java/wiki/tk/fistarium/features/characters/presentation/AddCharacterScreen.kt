@@ -79,11 +79,17 @@ fun AddCharacterScreen(
             )
         }
     ) { padding ->
+        val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 16.dp + navBarPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {

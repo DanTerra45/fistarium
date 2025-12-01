@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,7 +58,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.delay
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.characters.domain.Character
 import wiki.tk.fistarium.presentation.ui.components.PingPongMarqueeText
@@ -82,15 +84,17 @@ fun HomeScreen(
     var showSearch by remember { mutableStateOf(false) }
     var showSyncSuccess by remember { mutableStateOf(false) }
 
-    // Handle transient success message
+    // Handle transient success message with proper lifecycle-aware timeout
     LaunchedEffect(syncState) {
-        if (syncState == "Sync successful") { // Assuming this is the string from MainActivity
-            showSyncSuccess = true
-            delay(3000)
+        showSyncSuccess = syncState.contains("success", ignoreCase = true)
+    }
+    
+    // Auto-hide success message after a timeout
+    LaunchedEffect(showSyncSuccess) {
+        if (showSyncSuccess) {
+            kotlinx.coroutines.delay(3000L) // UI feedback delay is acceptable
             showSyncSuccess = false
             onSyncMessageShown()
-        } else {
-            showSyncSuccess = false
         }
     }
 
@@ -282,9 +286,15 @@ fun CharacterListContent(
             }
         }
     } else {
+        val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 16.dp + navBarPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(characters, key = { it.id }) { character ->
@@ -300,7 +310,8 @@ fun CharacterListContent(
 
 @Composable
 fun CharacterCard(character: Character, onClick: () -> Unit) {
-    val currentLanguage = java.util.Locale.getDefault().language
+    // Remember locale to avoid recalculation on every recomposition
+    val currentLanguage = remember { java.util.Locale.getDefault().language }
     Card(
         modifier = Modifier
             .fillMaxWidth()
