@@ -62,6 +62,8 @@
     <string name="character_created">Character created successfully!</string>
     <string name="character_updated">Character updated successfully!</string>
     <string name="character_deleted">Character deleted</string>
+    <string name="delete_character_title">Delete Character</string>
+    <string name="delete_character_message">Are you sure you want to delete %1$s? This action cannot be undone.</string>
     
     <!-- Sync & Loading -->
     <string name="loading">Loading…</string>
@@ -85,6 +87,12 @@
     <string name="language">Language</string>
     <string name="notifications">Notifications</string>
     <string name="enable_notifications">Enable Notifications</string>
+    <string name="notifications_enabled">Notifications Enabled</string>
+    <string name="permission_required_title">Permission Required</string>
+    <string name="permission_required_message">Notifications are currently disabled. Please enable them in settings to receive updates.</string>
+    <string name="manage_notifications_title">Manage Notifications</string>
+    <string name="manage_notifications_message">Notifications are currently enabled. You can manage your preferences in the system settings.</string>
+    <string name="open_settings">Open Settings</string>
     <string name="new_characters">New Characters</string>
     <string name="character_updates">Character Updates</string>
     <string name="new_translations">New Translations</string>
@@ -187,8 +195,19 @@
     <string name="game_tk7">Tekken 7: Fated Retribution</string>
     <string name="game_tk8">Tekken 8: The Dark Awakens</string>
     
+    <string name="game_short_tk1">Tekken 1</string>
+    <string name="game_short_tk2">Tekken 2</string>
+    <string name="game_short_tk3">Tekken 3</string>
+    <string name="game_short_tk4">Tekken 4</string>
+    <string name="game_short_tk5">Tekken 5</string>
+    <string name="game_short_tk6">Tekken 6</string>
+    <string name="game_short_tk7">Tekken 7</string>
+    <string name="game_short_tk8">Tekken 8</string>
+    <string name="game_short_tag">Tekken Tag</string>
+    <string name="game_short_tag2">Tekken Tag 2</string>
+    
     <!-- Versus -->
-    <string name="versus_mode">Versus Mode</string>
+    <string name="versus_mode">Versus</string>
     <string name="versus_analysis">Versus Analysis</string>
     <string name="fight_button">FIGHT!</string>
     <string name="punishers">Punishers</string>
@@ -229,4 +248,20 @@
     <string name="frame_block">Block</string>
     <string name="frame_hit">Hit</string>
     <string name="frame_counter_hit">CH</string>
+    
+    <!-- News -->
+    <string name="news_title">News &amp; Updates</string>
+    <string name="news_subtitle">Patch notes from the Tekken games and announcements</string>
+    <string name="no_news">No news available at the moment.</string>
+    <string name="news_type_update">UPDATE</string>
+    <string name="news_type_announcement">ANNOUNCEMENT</string>
+    <string name="news_type_community">COMMUNITY</string>
+    <string name="version_label">Version %1$s</string>
+    <string name="no_content_details">No additional details available.</string>
+
+    <!-- Languages -->
+    <string name="lang_en_us">English (US)</string>
+    <string name="lang_es_419">Spanish (Latin America)</string>
+    <string name="lang_es_es">Spanish (Spain)</string>
+    <string name="characters_game_fallback">Characters (%1$s)</string>
 </resources>

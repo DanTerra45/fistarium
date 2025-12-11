@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.navigation.compose.rememberNavController
+import timber.log.Timber
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -61,15 +62,44 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
     val authViewModel: AuthViewModel = koinViewModel()
     val characterViewModel: CharacterViewModel = koinViewModel()
     val versusViewModel: VersusViewModel = koinViewModel()
+    val settingsViewModel: SettingsViewModel = koinViewModel()
 
     val authState by authViewModel.authState.collectAsState()
     val userRole by authViewModel.userRole.collectAsState()
     val uiState by characterViewModel.uiState.collectAsState()
     val isOnline by characterViewModel.isOnline.collectAsState()
+    val appLanguage by settingsViewModel.appLanguage.collectAsState()
     
-    // Ready when auth state is determined (not Loading or Idle on first check)
-    val isReady = remember(authState) {
-        authState != AuthViewModel.AuthState.Loading
+    // Track if remote config has been fetched
+    var isConfigFetched by remember { mutableStateOf(false) }
+
+    // Ready when auth state is determined AND remote config is fetched
+    val isReady = remember(authState, isConfigFetched) {
+        authState != AuthViewModel.AuthState.Loading && isConfigFetched
+    }
+
+    // Manage Notification Subscriptions based on Language
+    LaunchedEffect(appLanguage) {
+        val messaging = com.google.firebase.messaging.FirebaseMessaging.getInstance()
+        
+        // Subscribe to global news
+        messaging.subscribeToTopic("news_all")
+        
+        // Subscribe to language specific news
+        // Unsubscribe from other supported languages to avoid duplicate/wrong notifications
+        val supportedLanguages = listOf("en", "es")
+        supportedLanguages.forEach { lang ->
+            if (lang == appLanguage) {
+                messaging.subscribeToTopic("news_$lang")
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Timber.d("Subscribed to news_$lang")
+                        }
+                    }
+            } else {
+                messaging.unsubscribeFromTopic("news_$lang")
+            }
+        }
     }
 
     // Determine start destination based on CURRENT auth state (not remembered)
@@ -88,12 +118,56 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
     var showUpdateDialog by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    // Notification Permission for Android 13+
+    // Moved to NewsScreen as per user request
+    /*
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+            contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+            onResult = { isGranted ->
+                // Handle permission result if needed
+            }
+        )
+        
+        LaunchedEffect(Unit) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+    */
+
+    // Log FCM Token for testing
     LaunchedEffect(Unit) {
-        if (remoteConfigManager.isForceUpdateRequired() || 
-            !remoteConfigManager.isVersionCompatible(BuildConfig.VERSION_NAME)) {
-            showUpdateDialog = true
-        } else if (remoteConfigManager.isMaintenanceMode()) {
-            showMaintenanceDialog = true
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            Timber.d("Token: $token")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        // Fetch remote config before checking flags
+        remoteConfigManager.fetchAndActivate()
+        isConfigFetched = true
+    }
+
+    LaunchedEffect(isConfigFetched, userRole) {
+        if (isConfigFetched) {
+            if (remoteConfigManager.isForceUpdateRequired() || 
+                !remoteConfigManager.isVersionCompatible(BuildConfig.VERSION_NAME)) {
+                showUpdateDialog = true
+            } else if (remoteConfigManager.isMaintenanceMode() && userRole != "admin") {
+                showMaintenanceDialog = true
+            } else {
+                showMaintenanceDialog = false
+            }
         }
     }
 
@@ -149,7 +223,9 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
             LaunchedEffect(authState) {
                 when (authState) {
                     is AuthViewModel.AuthState.LoggedIn -> {
-                        if (navController.currentDestination?.route == NavRoutes.WELCOME || 
+                        // Sync characters after login (in case initial sync failed without auth)
+                        characterViewModel.syncCharacters()
+                        if (navController.currentDestination?.route == NavRoutes.AUTH || 
                             navController.currentDestination?.route == NavRoutes.LOGIN) {
                             navController.navigate(NavRoutes.MAIN_MENU) {
                                 popUpTo(0) { inclusive = true }
@@ -157,12 +233,15 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
                         }
                     }
                     is AuthViewModel.AuthState.Registered -> {
+                        characterViewModel.syncCharacters()
                         navController.navigate(NavRoutes.MAIN_MENU) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
                     is AuthViewModel.AuthState.Guest -> {
-                        if (navController.currentDestination?.route == NavRoutes.WELCOME) {
+                        // Sync characters after guest login (initial sync fails without auth)
+                        characterViewModel.syncCharacters()
+                        if (navController.currentDestination?.route == NavRoutes.AUTH) {
                             navController.navigate(NavRoutes.MAIN_MENU) {
                                 popUpTo(0) { inclusive = true }
                             }
@@ -186,6 +265,10 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
                         navController.popBackStack()
                         characterViewModel.clearUiState()
                     }
+                    is CharacterViewModel.UiState.CharacterDeleted -> {
+                        navController.popBackStack()
+                        characterViewModel.clearUiState()
+                    }
                     else -> {}
                 }
             }
@@ -201,6 +284,20 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
                 uiState = uiState,
                 isOnline = isOnline
             )
+
+            // Handle Notification Deep Link
+            LaunchedEffect(Unit) {
+                val intent = (context as? android.app.Activity)?.intent
+                if (intent?.getStringExtra("navigate_to") == "news") {
+                    // Wait for auth state to settle if needed, or just navigate
+                    // For now, we assume if they click a notification they want to see news regardless of auth state (if public)
+                    // But since News is in Main Menu, we might need to wait for login.
+                    // Simple approach:
+                    if (authState is AuthViewModel.AuthState.LoggedIn || authState is AuthViewModel.AuthState.Guest) {
+                        navController.navigate(NavRoutes.NEWS)
+                    }
+                }
+            }
         } // End LoadingOverlay content
     }
 }

@@ -45,16 +45,16 @@ fun GameSelectionScreen(
     onGameSelected: (String) -> Unit
 ) {
     val games = listOf(
-        GameOption("TK1", "Tekken 1", Color(0xFFD32F2F)),
-        GameOption("TK2", "Tekken 2", Color(0xFFC2185B)),
-        GameOption("TK3", "Tekken 3", Color(0xFF7B1FA2)),
-        GameOption("TK4", "Tekken 4", Color(0xFF512DA8)),
-        GameOption("TK5", "Tekken 5", Color(0xFF303F9F)),
-        GameOption("TK6", "Tekken 6", Color(0xFF1976D2)),
-        GameOption("TK7", "Tekken 7", Color(0xFF0288D1)),
-        GameOption("TK8", "Tekken 8", Color(0xFF0097A7)),
-        GameOption("TAG", "Tekken Tag", Color(0xFF00796B)),
-        GameOption("TAG2", "Tekken Tag 2", Color(0xFF388E3C))
+        GameOption("TK1", stringResource(R.string.game_short_tk1), Color(0xFFD32F2F)),
+        GameOption("TK2", stringResource(R.string.game_short_tk2), Color(0xFFC2185B)),
+        GameOption("TK3", stringResource(R.string.game_short_tk3), Color(0xFF7B1FA2)),
+        GameOption("TK4", stringResource(R.string.game_short_tk4), Color(0xFF512DA8)),
+        GameOption("TK5", stringResource(R.string.game_short_tk5), Color(0xFF303F9F)),
+        GameOption("TK6", stringResource(R.string.game_short_tk6), Color(0xFF1976D2)),
+        GameOption("TK7", stringResource(R.string.game_short_tk7), Color(0xFF0288D1)),
+        GameOption("TK8", stringResource(R.string.game_short_tk8), Color(0xFF0097A7)),
+        GameOption("TAG", stringResource(R.string.game_short_tag), Color(0xFF00796B)),
+        GameOption("TAG2", stringResource(R.string.game_short_tag2), Color(0xFF388E3C))
     )
 
     Scaffold(
@@ -72,7 +72,7 @@ fun GameSelectionScreen(
     ) { padding ->
         val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+            columns = GridCells.Adaptive(minSize = 160.dp),
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,

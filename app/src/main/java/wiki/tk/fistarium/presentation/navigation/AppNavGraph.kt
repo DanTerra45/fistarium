@@ -9,8 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
-import wiki.tk.fistarium.features.auth.presentation.LoginScreen
-import wiki.tk.fistarium.features.auth.presentation.RegisterScreen
 import wiki.tk.fistarium.features.characters.domain.Character
 import wiki.tk.fistarium.features.characters.presentation.*
 import wiki.tk.fistarium.features.history.presentation.HistoryScreen
@@ -19,15 +17,19 @@ import wiki.tk.fistarium.features.profile.presentation.ProfileScreen
 import wiki.tk.fistarium.features.settings.presentation.SettingsScreen
 import wiki.tk.fistarium.features.versus.presentation.VersusResultScreen
 import wiki.tk.fistarium.features.versus.presentation.VersusSearchScreen
+import wiki.tk.fistarium.features.news.presentation.NewsScreen
+import wiki.tk.fistarium.features.news.presentation.NewsViewModel
+import org.koin.androidx.compose.koinViewModel
 import wiki.tk.fistarium.features.versus.presentation.VersusViewModel
-import wiki.tk.fistarium.presentation.ui.screens.WelcomeScreen
 import java.util.UUID
 
 object NavRoutes {
+    const val AUTH = "auth" // Auth flow with shared animated background
     const val WELCOME = "welcome"
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val MAIN_MENU = "main_menu"
+    const val NEWS = "news"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val GAME_SELECTION = "game_selection"
@@ -56,40 +58,16 @@ fun AppNavGraph(
     uiState: CharacterViewModel.UiState,
     isOnline: Boolean
 ) {
-    NavHost(navController = navController, startDestination = startDestination) {
-        composable(NavRoutes.WELCOME) {
-            WelcomeScreen(
-                onLoginClick = { navController.navigate(NavRoutes.LOGIN) },
-                onRegisterClick = { navController.navigate(NavRoutes.REGISTER) },
-                onGuestClick = { authViewModel.continueAsGuest() }
-            )
-        }
-
-        composable(NavRoutes.LOGIN) {
-            val isLoading = authState is AuthViewModel.AuthState.Loading
-            val errorMessage = (authState as? AuthViewModel.AuthState.Error)?.message
-            LoginScreen(
-                onLogin = { email, password ->
-                    authViewModel.login(email, password)
-                },
-                onGoToRegister = { navController.navigate(NavRoutes.REGISTER) },
-                onBack = { navController.popBackStack() },
-                isLoading = isLoading,
-                errorMessage = errorMessage
-            )
-        }
-
-        composable(NavRoutes.REGISTER) {
-            val isLoading = authState is AuthViewModel.AuthState.Loading
-            val errorMessage = (authState as? AuthViewModel.AuthState.Error)?.message
-            RegisterScreen(
-                onRegister = { email, password ->
-                    authViewModel.register(email, password)
-                },
-                onGoToLogin = { navController.navigate(NavRoutes.LOGIN) },
-                onBack = { navController.popBackStack() },
-                isLoading = isLoading,
-                errorMessage = errorMessage
+    // Map old welcome route to new auth route for startDestination
+    val actualStartDestination = if (startDestination == NavRoutes.WELCOME) NavRoutes.AUTH else startDestination
+    
+    NavHost(navController = navController, startDestination = actualStartDestination) {
+        // Auth flow with shared AnimatedBackground
+        composable(NavRoutes.AUTH) {
+            AuthNavGraph(
+                parentNavController = navController,
+                authViewModel = authViewModel,
+                authState = authState
             )
         }
 
@@ -98,14 +76,23 @@ fun AppNavGraph(
                 onNavigateToCharacters = { navController.navigate(NavRoutes.GAME_SELECTION) },
                 onNavigateToHistory = { navController.navigate(NavRoutes.HISTORY) },
                 onNavigateToVersus = { navController.navigate(NavRoutes.VERSUS_SEARCH) },
+                onNavigateToNews = { navController.navigate(NavRoutes.NEWS) },
                 onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
                 onNavigateToProfile = { navController.navigate(NavRoutes.PROFILE) },
                 onLogout = {
                     authViewModel.logout()
-                    navController.navigate(NavRoutes.WELCOME) {
+                    navController.navigate(NavRoutes.AUTH) {
                         popUpTo(NavRoutes.MAIN_MENU) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(NavRoutes.NEWS) {
+            val newsViewModel: NewsViewModel = koinViewModel()
+            NewsScreen(
+                viewModel = newsViewModel,
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -117,7 +104,7 @@ fun AppNavGraph(
                     navController.navigate(NavRoutes.detail(id))
                 },
                 onNavigateToLogin = {
-                    navController.navigate(NavRoutes.LOGIN)
+                    navController.navigate(NavRoutes.AUTH)
                 }
             )
         }
@@ -126,7 +113,7 @@ fun AppNavGraph(
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onAccountDeleted = {
-                    navController.navigate(NavRoutes.WELCOME) {
+                    navController.navigate(NavRoutes.AUTH) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
@@ -186,7 +173,7 @@ fun AppNavGraph(
                 "TK8" to stringResource(R.string.game_tk8)
             )
 
-            val displayTitle = gameTitles[gameId] ?: "Characters ($gameId)"
+            val displayTitle = gameTitles[gameId] ?: stringResource(R.string.characters_game_fallback, gameId)
             val searchHint = stringResource(R.string.searching_in_game, gameTitles[gameId] ?: gameId)
 
             HomeScreen(
@@ -260,6 +247,13 @@ fun AppNavGraph(
                 onEdit = if (characterViewModel.isEditingEnabled && !isGuest) {
                     { characterId ->
                         navController.navigate(NavRoutes.editCharacter(characterId))
+                    }
+                } else null,
+                onDelete = if (characterViewModel.isEditingEnabled && !isGuest) {
+                    { characterId ->
+                        val userId = authViewModel.getCurrentUserId() ?: ""
+                        val isAdmin = userRole == "admin"
+                        characterViewModel.deleteCharacter(characterId, userId, isAdmin)
                     }
                 } else null
             )

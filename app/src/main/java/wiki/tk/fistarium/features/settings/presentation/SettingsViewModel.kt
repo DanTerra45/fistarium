@@ -19,7 +19,7 @@ class SettingsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
     val appLanguage: StateFlow<String> = preferencesManager.appLanguage
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "en")
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), preferencesManager.getDefaultLanguage())
 
     // Error state for user feedback
     private val _error = MutableStateFlow<String?>(null)

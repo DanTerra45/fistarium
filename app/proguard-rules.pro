@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep Firestore Data Classes
+-keep class wiki.tk.fistarium.features.news.domain.** { *; }

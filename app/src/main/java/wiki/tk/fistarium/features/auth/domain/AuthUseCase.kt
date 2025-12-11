@@ -1,7 +1,5 @@
 package wiki.tk.fistarium.features.auth.domain
 
-import android.util.Patterns
-
 class AuthUseCase(private val authRepository: AuthRepository) {
 
     companion object {
@@ -29,11 +27,12 @@ class AuthUseCase(private val authRepository: AuthRepository) {
 
     private fun validateCredentials(email: String, password: String): String? {
         val trimmedEmail = email.trim()
+        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
         
         return when {
             trimmedEmail.isBlank() -> "Email cannot be empty"
             trimmedEmail.length > MAX_EMAIL_LENGTH -> "Email is too long"
-            !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches() -> "Invalid email format"
+            !emailRegex.matches(trimmedEmail) -> "Invalid email format"
             password.isBlank() -> "Password cannot be empty"
             password.length < MIN_PASSWORD_LENGTH -> "Password must be at least $MIN_PASSWORD_LENGTH characters"
             else -> null

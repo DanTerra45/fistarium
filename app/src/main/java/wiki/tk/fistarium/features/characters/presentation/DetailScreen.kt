@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -23,10 +24,13 @@ fun DetailScreen(
     character: Character?,
     onBack: () -> Unit,
     onToggleFavorite: (String, Boolean) -> Unit = { _, _ -> },
-    onEdit: ((String) -> Unit)? = null
+    onEdit: ((String) -> Unit)? = null,
+    onDelete: ((String) -> Unit)? = null
 ) {
     // Remember locale to avoid recalculation on every recomposition
     val currentLanguage = remember { java.util.Locale.getDefault().language }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     if (character == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -34,17 +38,48 @@ fun DetailScreen(
         return
     }
 
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.delete_character_title)) },
+            text = { Text(stringResource(R.string.delete_character_message, character.name)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete?.invoke(character.id)
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.testTag("confirm_delete_button")
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(character.getLocalizedName(currentLanguage)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.testTag("back_button")
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onToggleFavorite(character.id, !character.isFavorite) }) {
+                    IconButton(
+                        onClick = { onToggleFavorite(character.id, !character.isFavorite) },
+                        modifier = Modifier.testTag("favorite_button")
+                    ) {
                         Icon(
                             if (character.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (character.isFavorite) 
@@ -54,8 +89,23 @@ fun DetailScreen(
                         )
                     }
                     if (onEdit != null) {
-                        IconButton(onClick = { onEdit(character.id) }) {
+                        IconButton(
+                            onClick = { onEdit(character.id) },
+                            modifier = Modifier.testTag("edit_button")
+                        ) {
                             Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
+                        }
+                    }
+                    if (onDelete != null) {
+                        IconButton(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier.testTag("delete_button")
+                        ) {
+                            Icon(
+                                Icons.Default.Delete, 
+                                contentDescription = stringResource(R.string.delete),
+                                tint = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                 }
@@ -66,7 +116,8 @@ fun DetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .testTag("detail_list"),
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
@@ -76,7 +127,7 @@ fun DetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Character Image
-            item {
+            item(key = "image") {
                 character.imageUrl?.let { url ->
                     Card(
                         modifier = Modifier
@@ -108,8 +159,8 @@ fun DetailScreen(
             */
 
             // Basic Info
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
+            item(key = "basic_info") {
+                Card(modifier = Modifier.fillMaxWidth().testTag("basic_info_card")) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         character.getLocalizedFightingStyle(currentLanguage)?.let {
                             InfoRow(stringResource(R.string.fighting_style), it)
@@ -140,7 +191,7 @@ fun DetailScreen(
 
             // Stats
             if (character.stats.isNotEmpty()) {
-                item {
+                item(key = "stats") {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -198,15 +249,15 @@ fun DetailScreen(
 
             // Moves
             if (character.moveList.isNotEmpty()) {
-                item {
+                item(key = "moves_header") {
                     Text(
                         text = stringResource(R.string.moves),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                items(character.moveList) { move ->
+                items(character.moveList, key = { it.id }) { move ->
                     val frameData = character.frameData[move.id]
-                    Card(modifier = Modifier.fillMaxWidth()) {
+                    Card(modifier = Modifier.fillMaxWidth().testTag("move_card_${move.id}")) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(text = move.name, style = MaterialTheme.typography.titleMedium)
                             Text(
@@ -263,13 +314,13 @@ fun DetailScreen(
 
             // Combos
             if (character.combos.isNotEmpty()) {
-                item {
+                item(key = "combos_header") {
                     Text(
                         text = stringResource(R.string.combos),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                items(character.combos) { combo ->
+                items(character.combos, key = { it.id }) { combo ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(text = combo.name, style = MaterialTheme.typography.titleMedium)

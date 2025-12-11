@@ -48,16 +48,16 @@ fun AddCharacterScreen(
     )
     
     val availableGames = listOf(
-        "TK1" to "Tekken 1",
-        "TK2" to "Tekken 2",
-        "TK3" to "Tekken 3",
-        "TK4" to "Tekken 4",
-        "TK5" to "Tekken 5",
-        "TK6" to "Tekken 6",
-        "TK7" to "Tekken 7",
-        "TK8" to "Tekken 8",
-        "TAG" to "Tekken Tag",
-        "TAG2" to "Tekken Tag 2"
+        "TK1" to stringResource(R.string.game_short_tk1),
+        "TK2" to stringResource(R.string.game_short_tk2),
+        "TK3" to stringResource(R.string.game_short_tk3),
+        "TK4" to stringResource(R.string.game_short_tk4),
+        "TK5" to stringResource(R.string.game_short_tk5),
+        "TK6" to stringResource(R.string.game_short_tk6),
+        "TK7" to stringResource(R.string.game_short_tk7),
+        "TK8" to stringResource(R.string.game_short_tk8),
+        "TAG" to stringResource(R.string.game_short_tag),
+        "TAG2" to stringResource(R.string.game_short_tag2)
     )
     
     val isEditMode = initialCharacter != null

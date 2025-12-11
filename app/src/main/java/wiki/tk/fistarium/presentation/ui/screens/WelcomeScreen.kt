@@ -1,11 +1,13 @@
 package wiki.tk.fistarium.presentation.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -27,13 +29,17 @@ import wiki.tk.fistarium.BuildConfig
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.presentation.ui.components.AnimatedBackground
 
+/**
+ * Welcome screen content without background.
+ * Used when AnimatedBackground is provided by parent (e.g., AuthNavGraph).
+ */
 @Composable
-fun WelcomeScreen(
+fun WelcomeContent(
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onGuestClick: () -> Unit
 ) {
-    AnimatedBackground {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -107,14 +113,34 @@ fun WelcomeScreen(
             }
         }
         
-        // Footer
+        // Footer - version number at bottom
         Text(
             text = BuildConfig.VERSION_NAME,
             style = MaterialTheme.typography.labelSmall,
             color = Color.Gray.copy(alpha = 0.5f),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
                 .padding(bottom = 16.dp)
+        )
+    }
+}
+
+/**
+ * Standalone Welcome screen with its own AnimatedBackground.
+ * Used for direct navigation without shared background.
+ */
+@Composable
+fun WelcomeScreen(
+    onLoginClick: () -> Unit,
+    onRegisterClick: () -> Unit,
+    onGuestClick: () -> Unit
+) {
+    AnimatedBackground {
+        WelcomeContent(
+            onLoginClick = onLoginClick,
+            onRegisterClick = onRegisterClick,
+            onGuestClick = onGuestClick
         )
     }
 }

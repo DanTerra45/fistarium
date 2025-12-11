@@ -74,9 +74,7 @@ fun FistariumTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Status bar color is transparent because of edge-to-edge
-            // window.statusBarColor = Color.Transparent.toArgb()
-            // If it's NOT dark theme, we want dark status bar icons (light status bar)
+            // Control status bar icon colors based on theme (light icons for dark theme, dark icons for light theme)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
