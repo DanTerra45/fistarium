@@ -18,6 +18,7 @@ val appModule = module {
         authModule,
         characterModule,
         versusModule,
-        settingsModule
+        settingsModule,
+        newsModule
     )
 }

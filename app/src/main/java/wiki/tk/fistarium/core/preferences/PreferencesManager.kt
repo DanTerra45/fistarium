@@ -26,8 +26,20 @@ class PreferencesManager(private val context: Context) {
 
     val appLanguage: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[APP_LANGUAGE] ?: "en-US"
+            preferences[APP_LANGUAGE] ?: getDefaultLanguage()
         }
+
+    fun getDefaultLanguage(): String {
+        val locale = context.resources.configuration.locales[0]
+        val language = locale.language
+        val country = locale.country
+
+        return when {
+            language == "es" && country == "ES" -> "es-ES"
+            language == "es" -> "es-419"
+            else -> "en-US"
+        }
+    }
 
     suspend fun setThemeMode(mode: Int) {
         context.dataStore.edit { preferences ->

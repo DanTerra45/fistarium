@@ -133,8 +133,14 @@ class CharacterViewModel(
         }
     }
 
+    // Job to track the current character selection flow
+    private var selectedCharacterJob: kotlinx.coroutines.Job? = null
+
     fun getCharacterById(id: String) {
-        viewModelScope.launch {
+        // Cancel previous job to prevent race conditions
+        selectedCharacterJob?.cancel()
+        
+        selectedCharacterJob = viewModelScope.launch {
             characterUseCase.getCharacterById(id).collect { char ->
                 _state.update { it.copy(selectedCharacter = char) }
             }
@@ -226,10 +232,10 @@ class CharacterViewModel(
         }
     }
 
-    fun deleteCharacter(characterId: String) {
+    fun deleteCharacter(characterId: String, userId: String, isAdmin: Boolean) {
         viewModelScope.launch {
             _state.update { it.copy(uiState = UiState.Loading) }
-            val result = characterUseCase.deleteCharacter(characterId)
+            val result = characterUseCase.deleteCharacter(characterId, userId, isAdmin)
             _state.update { 
                 it.copy(uiState = if (result.isSuccess) {
                     UiState.CharacterDeleted

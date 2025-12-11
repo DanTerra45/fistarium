@@ -199,7 +199,7 @@
     <string name="select_games">Select Games</string>
     
     <!-- Versus -->
-    <string name="versus_mode">Versus Mode</string>
+    <string name="versus_mode">Versus</string>
     <string name="versus_analysis">Versus Analysis</string>
     <string name="fight_button">FIGHT!</string>
     <string name="punishers">Punishers</string>
@@ -224,4 +224,23 @@
     <string name="frame_block">Block</string>
     <string name="frame_hit">Hit</string>
     <string name="frame_counter_hit">CH</string>
+
+    <!-- News -->
+    <string name="news_title">News &amp; Updates</string>
+    <string name="news_subtitle">Patch notes from the Tekken games and announcements</string>
+    <string name="no_news">No news available at the moment.</string>
+    <string name="news_type_update">UPDATE</string>
+    <string name="news_type_announcement">ANNOUNCEMENT</string>
+    <string name="news_type_community">COMMUNITY</string>
+    <string name="version_label">Version %1$s</string>
+    <string name="no_content_details">No additional details available.</string>
+    <string name="manage_notifications_title">Manage Notifications</string>
+    <string name="manage_notifications_message">Notifications are currently enabled. You can manage your preferences in the system settings.</string>
+    <string name="open_settings">Open Settings</string>
+
+    <!-- Languages -->
+    <string name="lang_en_us">English (US)</string>
+    <string name="lang_es_419">Spanish (Latin America)</string>
+    <string name="lang_es_es">Spanish (Spain)</string>
+    <string name="characters_game_fallback">Characters (%1$s)</string>
 </resources>

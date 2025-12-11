@@ -1,6 +1,7 @@
 package wiki.tk.fistarium.features.characters.domain
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.util.UUID
 
 class CharacterUseCase(private val characterRepository: CharacterRepository) {
@@ -44,7 +45,15 @@ class CharacterUseCase(private val characterRepository: CharacterRepository) {
     }
 
     suspend fun updateCharacter(character: Character, userId: String): Result<Unit> {
+        val existingCharacter = characterRepository.getCharacterById(character.id).first()
+        
+        // If character exists, preserve creation info
+        val createdBy = existingCharacter?.createdBy ?: userId
+        val createdAt = existingCharacter?.createdAt ?: System.currentTimeMillis()
+        
         val updatedCharacter = character.copy(
+            createdBy = createdBy,
+            createdAt = createdAt,
             updatedBy = userId,
             updatedAt = System.currentTimeMillis(),
             version = character.version + 1
@@ -52,7 +61,14 @@ class CharacterUseCase(private val characterRepository: CharacterRepository) {
         return characterRepository.updateCharacter(updatedCharacter)
     }
 
-    suspend fun deleteCharacter(characterId: String): Result<Unit> {
+    suspend fun deleteCharacter(characterId: String, userId: String, isAdmin: Boolean): Result<Unit> {
+        val character = characterRepository.getCharacterById(characterId).first()
+            ?: return Result.failure(Exception("Character not found"))
+            
+        if (character.createdBy != userId && !isAdmin) {
+            return Result.failure(Exception("Permission denied: You can only delete your own characters"))
+        }
+        
         return characterRepository.deleteCharacter(characterId)
     }
 

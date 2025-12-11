@@ -3,6 +3,7 @@ package wiki.tk.fistarium.core.config
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.tasks.await
+import wiki.tk.fistarium.BuildConfig
 
 /**
  * Manager for Firebase Remote Config
@@ -40,8 +41,11 @@ class RemoteConfigManager {
         remoteConfig.setDefaultsAsync(DEFAULTS)
 
         // Configure fetch settings
+        // CAUTION: Low intervals in production can cause Firebase Throttling (blocking requests)
+        // We use 0s for Debug to test immediately, and 60s for Release.
+        val fetchInterval = if (BuildConfig.DEBUG) 0L else 3600L
         val configSettings = FirebaseRemoteConfigSettings.Builder()
-            .setMinimumFetchIntervalInSeconds(3600) // 1 hour cache
+            .setMinimumFetchIntervalInSeconds(fetchInterval)
             .build()
         remoteConfig.setConfigSettingsAsync(configSettings)
     }

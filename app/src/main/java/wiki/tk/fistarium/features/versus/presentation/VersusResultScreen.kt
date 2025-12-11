@@ -130,6 +130,14 @@ fun StatsComparisonView(p1: Character, p2: Character, statsDiff: Map<String, Int
     val locale = remember { java.util.Locale.getDefault() }
     val unknownText = stringResource(R.string.unknown)
     
+    val statResources = mapOf(
+        "power" to R.string.stats_power,
+        "speed" to R.string.stats_speed,
+        "range" to R.string.stats_range,
+        "technique" to R.string.stats_technique,
+        "ease_of_use" to R.string.stats_ease_of_use
+    )
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -158,21 +166,16 @@ fun StatsComparisonView(p1: Character, p2: Character, statsDiff: Map<String, Int
         }
 
         items(statsDiff.toList()) { (stat, _) ->
-            StatRow(stat, p1.stats[stat] ?: 0, p2.stats[stat] ?: 0, locale)
+            val label = statResources[stat]?.let { stringResource(it) } ?: stat
+            StatRow(label, p1.stats[stat] ?: 0, p2.stats[stat] ?: 0)
         }
     }
 }
 
 @Composable
-fun StatRow(statName: String, val1: Int, val2: Int, locale: java.util.Locale) {
-    val displayName = remember(statName) {
-        statName.replace("_", " ").replaceFirstChar { 
-            if (it.isLowerCase()) it.titlecase(locale) else it.toString() 
-        }
-    }
-    
+fun StatRow(label: String, val1: Int, val2: Int) {
     Column {
-        Text(displayName, style = MaterialTheme.typography.labelMedium)
+        Text(label, style = MaterialTheme.typography.labelMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically

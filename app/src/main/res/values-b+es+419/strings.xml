@@ -181,10 +181,21 @@
     <string name="game_tk7">Tekken 7: Retribución del Destino</string>
     <string name="game_tk8">Tekken 8: El Despertar de la Oscuridad</string>
     
+    <string name="game_short_tk1">Tekken 1</string>
+    <string name="game_short_tk2">Tekken 2</string>
+    <string name="game_short_tk3">Tekken 3</string>
+    <string name="game_short_tk4">Tekken 4</string>
+    <string name="game_short_tk5">Tekken 5</string>
+    <string name="game_short_tk6">Tekken 6</string>
+    <string name="game_short_tk7">Tekken 7</string>
+    <string name="game_short_tk8">Tekken 8</string>
+    <string name="game_short_tag">Tekken Tag</string>
+    <string name="game_short_tag2">Tekken Tag 2</string>
+    
     <!-- Versus -->
-    <string name="versus_mode">Modo Versus</string>
+    <string name="versus_mode">Versus</string>
     <string name="versus_analysis">Análisis Versus</string>
-    <string name="fight_button">¡PELEA!</string>
+    <string name="fight_button">¡A PELEAR!</string>
     <string name="punishers">Castigos</string>
     <string name="weakness_analysis">Análisis de debilidades</string>
     <string name="player_1">Jugador 1</string>
@@ -228,4 +239,28 @@
     <string name="frame_block">Bloq</string>
     <string name="frame_hit">Golpe</string>
     <string name="frame_counter_hit">CH</string>
+
+    <!-- News -->
+    <string name="news_title">Noticias y actualizaciones</string>
+    <string name="news_subtitle">Notas de los parches de los juegos de Tekken y anuncios</string>
+    <string name="no_news">No hay noticias disponibles por el momento.</string>
+    <string name="news_type_update">ACTUALIZACIÓN</string>
+    <string name="news_type_announcement">ANUNCIO</string>
+    <string name="news_type_community">COMUNIDAD</string>
+    <string name="version_label">Versión %1$s</string>
+    <string name="no_content_details">No hay detalles adicionales disponibles.</string>
+    
+    <!-- Notifications -->
+    <string name="notifications_enabled">Notificaciones Activadas</string>
+    <string name="permission_required_title">Permiso Requerido</string>
+    <string name="permission_required_message">Las notificaciones están desactivadas. Por favor, actívalas en la configuración para recibir actualizaciones.</string>
+    <string name="manage_notifications_title">Administrar notificaciones</string>
+    <string name="manage_notifications_message">Las notificaciones están activadas. Puedes administrar tus preferencias en la configuración del sistema.</string>
+    <string name="open_settings">Abrir Configuración</string>
+
+    <!-- Idiomas -->
+    <string name="lang_en_us">Inglés (EE. UU.)</string>
+    <string name="lang_es_419">Español (Latinoamérica)</string>
+    <string name="lang_es_es">Español (España)</string>
+    <string name="characters_game_fallback">Personajes (%1$s)</string>
 </resources>

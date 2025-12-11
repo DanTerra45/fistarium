@@ -3,60 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Eliminación de Datos de Fistarium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <title>Fistarium - Data Deletion / Eliminación de Datos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Open Sans', sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
-        h1 { color: #D32F2F; border-bottom: 2px solid #EEE; padding-bottom: 10px; }
-        h2 { color: #3F51B5; margin-top: 25px; }
-        .alert { background-color: #FFF3CD; border-left: 5px solid #FFC107; padding: 15px; margin: 15px 0; }
-        ul { list-style-type: disc; margin-left: 20px; }
-        li { margin-bottom: 8px; }
+        :root {
+            --primary-color: #3F51B5;
+            --secondary-color: #5C6BC0;
+            --accent-color: #D32F2F;
+            --bg-color: #FAFAFA;
+            --text-color: #212121;
+            --border-color: #E0E0E0;
+            --alert-bg: #FFF3CD;
+            --alert-border: #FFC107;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .last-updated {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .lang-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--primary-color);
+            background: white;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .lang-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .content h1 {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 35px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 20px;
+        }
+
+        .alert {
+            background-color: var(--alert-bg);
+            border-left: 5px solid var(--alert-border);
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .alert strong {
+            color: #856404;
+        }
+
+        ul {
+            margin-left: 20px;
+            padding-left: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        li ul {
+            margin-top: 10px;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: var(--accent-color);
+        }
+
+        .lang-es, .lang-en {
+            display: none;
+        }
+
+        .lang-es.visible, .lang-en.visible {
+            display: block;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .lang-btn {
+                padding: 8px 15px;
+                font-size: 0.85em;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <h1>Solicitud de eliminación de datos y cuenta de Fistarium</h1>
+    <header>
+        <h1>Fistarium</h1>
+        <div class="lang-selector">
+            <button class="lang-btn active" onclick="setLang('es')" id="btn-es">Español</button>
+            <button class="lang-btn" onclick="setLang('en')" id="btn-en">English</button>
+        </div>
+    </header>
 
-    <p>Este documento describe las opciones que tienen los usuarios de la aplicación <strong>Fistarium</strong> para gestionar la eliminación de sus datos, ya sea de forma parcial o total.</p>
-    
-    <div class="alert">
-        <strong>Importante:</strong> La eliminación de la cuenta es <strong>irreversible</strong>. Una vez eliminados, los datos no se pueden recuperar.
-    </div>
+    <!-- Spanish -->
+    <div class="lang-es visible content">
+        <h1>Solicitud de Eliminación de Datos y Cuenta</h1>
+        <p class="last-updated"><strong>Última actualización:</strong> 10 de Diciembre de 2025</p>
 
-    <h2>1. Proceso de eliminación (cuenta completa o parcial)</h2>
-    
-    <p>Para garantizar la eliminación segura de sus datos, todas las solicitudes de eliminación de cuentas o de datos específicos deben gestionarse por nuestro equipo de soporte:</p>
+        <p>Este documento describe las opciones que tienen los usuarios de la aplicación <strong>Fistarium</strong> para gestionar la eliminación de sus datos, ya sea de forma parcial o total.</p>
+        
+        <div class="alert">
+            <strong>Importante:</strong> La eliminación de la cuenta es <strong>irreversible</strong>. Una vez eliminados, los datos no se pueden recuperar.
+        </div>
 
-    <h3>Pasos para la solicitud:</h3>
-    <ul>
-    <li><strong>Solicitud Obligatoria por Correo Electrónico:</strong>
-        Envíe un correo electrónico a <strong>daniel.terrazas@ucb.edu.bo</strong>
-    </li>
-    <li><strong>Contenido del Correo:</strong>
-        Debe especificar claramente si desea:
+        <h2>1. Proceso de eliminación (cuenta completa o parcial)</h2>
+        
+        <p>Para garantizar la eliminación segura de sus datos, todas las solicitudes de eliminación de cuentas o de datos específicos deben gestionarse por nuestro equipo de soporte:</p>
+
+        <h3>Pasos para la solicitud:</h3>
         <ul>
-            <li><strong>(1)</strong> Eliminación Total de la Cuenta o
-                <strong>(2)</strong> Eliminación Parcial (indicando el personaje o la categoría de dato a borrar)
+            <li><strong>Solicitud Obligatoria por Correo Electrónico:</strong>
+                Envíe un correo electrónico a <a href="mailto:daniel.terrazas@ucb.edu.bo">daniel.terrazas@ucb.edu.bo</a>
+            </li>
+            <li><strong>Contenido del Correo:</strong>
+                Debe especificar claramente si desea:
+                <ul>
+                    <li><strong>(1)</strong> Eliminación Total de la Cuenta</li>
+                    <li><strong>(2)</strong> Eliminación Parcial (indicando el personaje o la categoría de dato a borrar)</li>
+                </ul>
             </li>
         </ul>
-    </li>
-    </ul>
 
-    <p>Nuestro equipo procesará la solicitud de eliminación manual en un plazo de 7 días hábiles.</p>
+        <p>Nuestro equipo procesará la solicitud de eliminación manual en un plazo de <strong>7 días hábiles</strong>.</p>
 
-    <h2>2. Tipos de datos eliminados</h2>
-    
-    <p>Al procesar la solicitud, se eliminan los siguientes datos de nuestros servidores de Firebase:</p>
-    <ul>
-        <li><strong>Información de la cuenta:</strong> Dirección de correo electrónico, contraseña (encriptada) y nombre de usuario (Display Name).</li>
-        <li><strong>Contenido generado por el usuario:</strong> Personajes creados y sus imágenes asociadas.</li>
-        <li><strong>Preferencias:</strong> La lista de personajes marcados como Favoritos.</li>
-    </ul>
+        <h2>2. Tipos de datos eliminados</h2>
+        
+        <p>Al procesar la solicitud, se eliminan los siguientes datos de nuestros servidores de Firebase:</p>
+        <ul>
+            <li><strong>Información de la cuenta:</strong> Dirección de correo electrónico, contraseña (encriptada) y nombre de usuario (Display Name).</li>
+            <li><strong>Contenido generado por el usuario:</strong> Personajes creados y sus imágenes asociadas.</li>
+            <li><strong>Preferencias:</strong> La lista de personajes marcados como Favoritos.</li>
+        </ul>
 
-    <h2>3. Retención de datos</h2>
-    
-    <p>Conservamos los Datos de Registro y Diagnóstico por un período limitado (hasta <strong>90 días</strong>) para fines de seguridad y auditoría. Estos datos no son información personal.</p>
+        <h2>3. Retención de datos</h2>
+        
+        <p>Conservamos los Datos de Registro y Diagnóstico por un período limitado (hasta <strong>90 días</strong>) para fines de seguridad y auditoría. Estos datos no son información personal.</p>
 
+        <h2>4. Contáctenos</h2>
+        <p>Si tiene alguna pregunta sobre la eliminación de datos, contáctenos en:</p>
+        <ul>
+            <li><a href="mailto:daniel.terrazas@ucb.edu.bo">daniel.terrazas@ucb.edu.bo</a></li>
+            <li><a href="mailto:jaime.deugarte@ucb.edu.bo">jaime.deugarte@ucb.edu.bo</a></li>
+        </ul>
+    </div>
+
+    <!-- English -->
+    <div class="lang-en content">
+        <h1>Data and Account Deletion Request</h1>
+        <p class="last-updated"><strong>Last updated:</strong> December 10, 2025</p>
+
+        <p>This document describes the options available to <strong>Fistarium</strong> app users to manage the deletion of their data, either partially or completely.</p>
+        
+        <div class="alert">
+            <strong>Important:</strong> Account deletion is <strong>irreversible</strong>. Once deleted, data cannot be recovered.
+        </div>
+
+        <h2>1. Deletion Process (complete or partial account)</h2>
+        
+        <p>To ensure secure deletion of your data, all account or specific data deletion requests must be handled by our support team:</p>
+
+        <h3>Steps to request:</h3>
+        <ul>
+            <li><strong>Mandatory Email Request:</strong>
+                Send an email to <a href="mailto:daniel.terrazas@ucb.edu.bo">daniel.terrazas@ucb.edu.bo</a>
+            </li>
+            <li><strong>Email Content:</strong>
+                You must clearly specify if you want:
+                <ul>
+                    <li><strong>(1)</strong> Complete Account Deletion</li>
+                    <li><strong>(2)</strong> Partial Deletion (indicating the character or data category to delete)</li>
+                </ul>
+            </li>
+        </ul>
+
+        <p>Our team will process the manual deletion request within <strong>7 business days</strong>.</p>
+
+        <h2>2. Types of Data Deleted</h2>
+        
+        <p>When processing the request, the following data is deleted from our Firebase servers:</p>
+        <ul>
+            <li><strong>Account information:</strong> Email address, password (encrypted), and username (Display Name).</li>
+            <li><strong>User-generated content:</strong> Created characters and their associated images.</li>
+            <li><strong>Preferences:</strong> The list of characters marked as Favorites.</li>
+        </ul>
+
+        <h2>3. Data Retention</h2>
+        
+        <p>We retain Log and Diagnostic Data for a limited period (up to <strong>90 days</strong>) for security and audit purposes. This data is not personal information.</p>
+
+        <h2>4. Contact Us</h2>
+        <p>If you have any questions about data deletion, contact us at:</p>
+        <ul>
+            <li><a href="mailto:daniel.terrazas@ucb.edu.bo">daniel.terrazas@ucb.edu.bo</a></li>
+            <li><a href="mailto:jaime.deugarte@ucb.edu.bo">jaime.deugarte@ucb.edu.bo</a></li>
+        </ul>
+    </div>
+
+    <footer>
+        <p>© 2025 Fistarium. All rights reserved.</p>
+        <p>Tekken™ is a trademark of Bandai Namco Entertainment Inc.</p>
+    </footer>
+
+    <script>
+        function setLang(lang) {
+            document.querySelectorAll('.lang-es, .lang-en').forEach(function(el) {
+                el.classList.remove('visible');
+            });
+            document.querySelectorAll('.lang-' + lang).forEach(function(el) {
+                el.classList.add('visible');
+            });
+            document.getElementById('btn-es').classList.remove('active');
+            document.getElementById('btn-en').classList.remove('active');
+            document.getElementById('btn-' + lang).classList.add('active');
+            document.documentElement.lang = lang === 'es' ? 'es' : 'en';
+            try {
+                localStorage.setItem('fistarium-lang', lang);
+            } catch (e) {
+                // localStorage not available
+            }
+        }
+        (function() {
+            var savedLang = null;
+            try {
+                savedLang = localStorage.getItem('fistarium-lang');
+            } catch (e) {}
+            
+            if (savedLang) {
+                setLang(savedLang);
+            } else {
+                var browserLang = navigator.language || navigator.userLanguage || 'es';
+                if (browserLang.startsWith('en')) {
+                    setLang('en');
+                } else {
+                    setLang('es');
+                }
+            }
+        })();
+    </script>
 </body>
 </html>

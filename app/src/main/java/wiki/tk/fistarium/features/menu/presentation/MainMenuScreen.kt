@@ -8,13 +8,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsKabaddi
@@ -56,6 +60,7 @@ fun MainMenuScreen(
     onNavigateToCharacters: () -> Unit,
     onNavigateToHistory: () -> Unit,
     onNavigateToVersus: () -> Unit,
+    onNavigateToNews: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onLogout: () -> Unit,
@@ -131,7 +136,7 @@ fun MainMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -188,6 +193,14 @@ fun MainMenuScreen(
                     color = MenuCardVersus,
                     onClick = onNavigateToVersus
                 )
+
+                MenuCard(
+                    title = stringResource(R.string.news_title),
+                    subtitle = stringResource(R.string.news_subtitle),
+                    icon = Icons.Default.Newspaper,
+                    color = Color(0xFF607D8B), // Blue Grey
+                    onClick = onNavigateToNews
+                )
             }
         }
 }
@@ -203,7 +216,6 @@ fun MenuCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = color),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -211,7 +223,8 @@ fun MenuCard(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .heightIn(min = 120.dp)
                 .padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -222,12 +235,16 @@ fun MenuCard(
                 tint = Color.White
             )
             Spacer(modifier = Modifier.width(24.dp))
-            Column {
+            Column(
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Text(
                     text = subtitle,

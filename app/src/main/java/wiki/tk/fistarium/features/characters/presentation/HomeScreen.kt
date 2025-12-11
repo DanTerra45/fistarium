@@ -20,8 +20,9 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -61,6 +62,7 @@ import coil3.compose.AsyncImage
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.characters.domain.Character
 import wiki.tk.fistarium.presentation.ui.components.PingPongMarqueeText
+import androidx.compose.ui.platform.testTag
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,7 +163,10 @@ fun HomeScreen(
                         ) 
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.testTag("back_button")
+                        ) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                         }
                     },
@@ -171,7 +176,8 @@ fun HomeScreen(
                             Icon(
                                 imageVector = Icons.Default.CloudOff,
                                 contentDescription = stringResource(R.string.offline_mode),
-                                tint = MaterialTheme.colorScheme.error
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("offline_indicator")
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
@@ -180,7 +186,10 @@ fun HomeScreen(
                             Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search_hint))
                         }
                         if (!isGuest && userRole == "admin") {
-                            IconButton(onClick = onAddCharacter) {
+                            IconButton(
+                                onClick = onAddCharacter,
+                                modifier = Modifier.testTag("add_character_button")
+                            ) {
                                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_character))
                             }
                         }
@@ -194,9 +203,9 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Sync status bar
+            // Sync status bar - Only show one state at a time, prioritizing success message
             AnimatedVisibility(
-                visible = showSyncSuccess || !isOnline || isLoading,
+                visible = showSyncSuccess || !isOnline || (isLoading && !showSyncSuccess),
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -218,7 +227,8 @@ fun HomeScreen(
                             text = when {
                                 !isOnline -> stringResource(R.string.offline_reconnecting)
                                 showSyncSuccess -> stringResource(R.string.sync_success)
-                                else -> stringResource(R.string.syncing)
+                                isLoading -> stringResource(R.string.syncing)
+                                else -> "" // Should not reach here
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = if (!isOnline)
@@ -230,12 +240,14 @@ fun HomeScreen(
                 }
             }
 
-            CharacterListContent(
-                characters = characters,
-                onCharacterClick = onCharacterClick,
-                isOnline = isOnline,
-                emptyMessage = stringResource(R.string.no_characters)
-            )
+            Box(modifier = Modifier.weight(1f)) {
+                CharacterListContent(
+                    characters = characters,
+                    onCharacterClick = onCharacterClick,
+                    isOnline = isOnline,
+                    emptyMessage = stringResource(R.string.no_characters)
+                )
+            }
         }
     }
 }
@@ -287,7 +299,11 @@ fun CharacterListContent(
         }
     } else {
         val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
-        LazyColumn(
+        val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+        
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Adaptive(minSize = 340.dp),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 16.dp,
@@ -295,6 +311,7 @@ fun CharacterListContent(
                 top = 16.dp,
                 bottom = 16.dp + navBarPadding.calculateBottomPadding()
             ),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(characters, key = { it.id }) { character ->

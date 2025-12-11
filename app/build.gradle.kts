@@ -21,8 +21,8 @@ android {
         applicationId = "wiki.tk.fistarium"
         minSdk = 28
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.0.3"
+        versionCode = 5
+        versionName = "0.0.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -142,6 +142,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.config)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging)
     implementation(libs.play.services.base)
 
     // DI & UTILS (Infrastructure)
@@ -156,12 +157,18 @@ dependencies {
     // TESTING
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit4)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.room.testing)
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
     
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

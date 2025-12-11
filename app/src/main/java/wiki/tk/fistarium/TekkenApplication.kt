@@ -30,7 +30,9 @@ class TekkenApplication : Application() {
         
         // Configure Timber for logging
         // Note: Timber logs are stripped in release builds via proguard/R8
-        Timber.plant(Timber.DebugTree())
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
         
         Timber.tag(TAG).d("Application onCreate started")
 

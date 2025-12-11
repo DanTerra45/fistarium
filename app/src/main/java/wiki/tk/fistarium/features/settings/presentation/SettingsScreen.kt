@@ -19,6 +19,9 @@ import wiki.tk.fistarium.BuildConfig
 import wiki.tk.fistarium.R
 import wiki.tk.fistarium.features.auth.presentation.AuthViewModel
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -29,7 +32,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val themeMode by viewModel.themeMode.collectAsState(initial = 0)
-    val appLanguage by viewModel.appLanguage.collectAsState(initial = "en")
+    val appLanguage by viewModel.appLanguage.collectAsState(initial = "en-US")
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -59,7 +62,7 @@ fun SettingsScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .padding(paddingValues)
-                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -116,11 +119,11 @@ fun SettingsScreen(
                         
                         var expanded by remember { mutableStateOf(false) }
                         val languages = listOf(
-                            "en-US" to "English (US)",
-                            "es-419" to "Español (Latinoamérica)",
-                            "es-ES" to "Español (España)"
+                            "en-US" to stringResource(R.string.lang_en_us),
+                            "es-419" to stringResource(R.string.lang_es_419),
+                            "es-ES" to stringResource(R.string.lang_es_es)
                         )
-                        val selectedLanguageName = languages.find { it.first == appLanguage }?.second ?: "English (US)"
+                        val selectedLanguageName = languages.find { it.first == appLanguage }?.second ?: stringResource(R.string.lang_en_us)
 
                         ExposedDropdownMenuBox(
                             expanded = expanded,
