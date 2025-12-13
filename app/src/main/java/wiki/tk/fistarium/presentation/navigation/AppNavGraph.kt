@@ -75,7 +75,10 @@ fun AppNavGraph(
             MainMenuScreen(
                 onNavigateToCharacters = { navController.navigate(NavRoutes.GAME_SELECTION) },
                 onNavigateToHistory = { navController.navigate(NavRoutes.HISTORY) },
-                onNavigateToVersus = { navController.navigate(NavRoutes.VERSUS_SEARCH) },
+                onNavigateToVersus = { 
+                    versusViewModel.clearSelection()
+                    navController.navigate(NavRoutes.VERSUS_SEARCH) 
+                },
                 onNavigateToNews = { navController.navigate(NavRoutes.NEWS) },
                 onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
                 onNavigateToProfile = { navController.navigate(NavRoutes.PROFILE) },
@@ -213,7 +216,9 @@ fun AppNavGraph(
                 player1 = versusState.player1,
                 player2 = versusState.player2,
                 onSelectPlayer1 = { versusViewModel.selectPlayer1(it) },
-                onSelectPlayer2 = { versusViewModel.selectPlayer2(it) }
+                onSelectPlayer2 = { versusViewModel.selectPlayer2(it) },
+                onClearPlayer1 = { versusViewModel.selectPlayer1(null) },
+                onClearPlayer2 = { versusViewModel.selectPlayer2(null) }
             )
         }
 
@@ -222,7 +227,10 @@ fun AppNavGraph(
             val punisherResult by versusViewModel.punisherResult.collectAsState()
             
             VersusResultScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { 
+                    versusViewModel.clearSelection()
+                    navController.popBackStack() 
+                },
                 comparisonResult = versusState.comparisonResult,
                 punisherResult = punisherResult,
                 onFindPunishers = { moveId, attacker, defender ->

@@ -1,7 +1,13 @@
 package wiki.tk.fistarium.core.config
 
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import wiki.tk.fistarium.BuildConfig
 
@@ -61,6 +67,29 @@ class RemoteConfigManager {
             e.printStackTrace()
             false
         }
+    }
+
+    /**
+     * Listen for real-time config updates
+     */
+    fun observeUpdates(): Flow<Unit> = callbackFlow {
+        val listener = object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                // Activate the new config
+                remoteConfig.activate().addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        trySend(Unit)
+                    }
+                }
+            }
+
+            override fun onError(error: FirebaseRemoteConfigException) {
+                error.printStackTrace()
+            }
+        }
+        
+        val registration = remoteConfig.addOnConfigUpdateListener(listener)
+        awaitClose { registration.remove() }
     }
 
     // Maintenance Mode

@@ -98,7 +98,7 @@
     <string name="error_permission">Permiso Denegado</string>
     
     <!-- Mantenimiento -->
-    <string name="maintenance_mode">Modo de Mantenimiento</string>
+    <string name="maintenance_mode">En mantenimiento</string>
     <string name="maintenance_message_default">Actualmente estamos realizando mantenimiento. Por favor, vuelve más tarde.</string>
     
     <!-- Actualización -->

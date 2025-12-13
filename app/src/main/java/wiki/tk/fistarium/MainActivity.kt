@@ -117,6 +117,9 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
     var showMaintenanceDialog by remember { mutableStateOf(false) }
     var showUpdateDialog by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    
+    // Trigger for config updates
+    var configUpdateTrigger by remember { mutableIntStateOf(0) }
 
     // Notification Permission for Android 13+
     // Moved to NewsScreen as per user request
@@ -156,9 +159,14 @@ private fun MainContent(remoteConfigManager: RemoteConfigManager) {
         // Fetch remote config before checking flags
         remoteConfigManager.fetchAndActivate()
         isConfigFetched = true
+        
+        // Listen for real-time updates
+        remoteConfigManager.observeUpdates().collect {
+            configUpdateTrigger++
+        }
     }
 
-    LaunchedEffect(isConfigFetched, userRole) {
+    LaunchedEffect(isConfigFetched, userRole, configUpdateTrigger) {
         if (isConfigFetched) {
             if (remoteConfigManager.isForceUpdateRequired() || 
                 !remoteConfigManager.isVersionCompatible(BuildConfig.VERSION_NAME)) {

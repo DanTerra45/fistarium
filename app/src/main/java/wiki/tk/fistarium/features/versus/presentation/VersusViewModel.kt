@@ -44,12 +44,12 @@ class VersusViewModel(
         }
     }
 
-    fun selectPlayer1(character: Character) {
+    fun selectPlayer1(character: Character?) {
         _state.update { it.copy(player1 = character) }
         calculateComparison()
     }
 
-    fun selectPlayer2(character: Character) {
+    fun selectPlayer2(character: Character?) {
         _state.update { it.copy(player2 = character) }
         calculateComparison()
     }

@@ -34,7 +34,9 @@ fun VersusSearchScreen(
     player2: Character?,
     // Events
     onSelectPlayer1: (Character) -> Unit,
-    onSelectPlayer2: (Character) -> Unit
+    onSelectPlayer2: (Character) -> Unit,
+    onClearPlayer1: () -> Unit,
+    onClearPlayer2: () -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -78,7 +80,8 @@ fun VersusSearchScreen(
                 CharacterSlot(
                     character = player1,
                     label = stringResource(R.string.player_1),
-                    isSelected = player1 == null
+                    isSelected = player1 == null,
+                    onClear = onClearPlayer1
                 )
                 
                 Text(
@@ -91,7 +94,8 @@ fun VersusSearchScreen(
                 CharacterSlot(
                     character = player2,
                     label = stringResource(R.string.player_2),
-                    isSelected = player1 != null && player2 == null
+                    isSelected = player1 != null && player2 == null,
+                    onClear = onClearPlayer2
                 )
             }
 
@@ -124,7 +128,8 @@ fun VersusSearchScreen(
 fun CharacterSlot(
     character: Character?,
     label: String,
-    isSelected: Boolean
+    isSelected: Boolean,
+    onClear: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -136,7 +141,8 @@ fun CharacterSlot(
                     width = if (isSelected) 3.dp else 1.dp,
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                     shape = CircleShape
-                ),
+                )
+                .clickable(enabled = character != null, onClick = onClear),
             contentAlignment = Alignment.Center
         ) {
             if (character != null) {

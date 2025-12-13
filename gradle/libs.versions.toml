@@ -1,6 +1,6 @@
 [versions]
 # Core & Build
-agp = "8.13.1"
+agp = "8.13.2"
 kotlin = "2.2.21"
 ksp = "2.2.21-2.0.4"
 googleGmsGoogleServices = "4.4.4"
@@ -36,7 +36,7 @@ koin = "4.1.1"
 timber = "5.0.1"
 
 # Firebase
-firebaseBom = "34.6.0"
+firebaseBom = "34.7.0"
 playServicesBase = "18.9.0"
 
 # Testing
